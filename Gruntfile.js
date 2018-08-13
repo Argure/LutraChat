@@ -134,14 +134,6 @@ module.exports = function(grunt) {
         },
         files: { 'app/assets/icon-192x192.png': 'app/assets/icon.png' }
       },
-      appletouch: {
-        options: {
-          height: 180,
-          overwrite: true,
-          width: 180
-        },
-        files: { 'app/assets/apple-touch-icon.png': 'app/assets/icon.png' }
-      },
       mstile: {
         options: {
           height: 310,
@@ -163,7 +155,6 @@ module.exports = function(grunt) {
 
   grunt.registerTask('build', [
     'sass',
-    'postcss',
     'cssmin',
     'uglify'
   ]);

@@ -1,0 +1,41 @@
+{
+  "name": "lutrachat",
+  "version": "0.1.0",
+  "description": "Converged Twitch and Mixer chat web interface",
+  "main": "app/index.js",
+  "scripts": {
+    "start": "node app/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Argure/LutraChat.git"
+  },
+  "keywords": [
+    "lutrachat",
+    "mixer",
+    "twitch",
+    "relay"
+  ],
+  "author": "Patrick Godschalk",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/Argure/LutraChat/issues"
+  },
+  "devDependencies": {
+    "autoprefixer": "^9.1.0",
+    "fibers": "^3.0.0",
+    "grunt": "^1.0.3",
+    "grunt-contrib-copy": "^1.0.0",
+    "grunt-contrib-cssmin": "^2.2.1",
+    "grunt-contrib-uglify": "^3.4.0",
+    "grunt-image-resize": "^1.0.0",
+    "grunt-jsdoc": "^2.2.1",
+    "grunt-postcss": "^0.9.0",
+    "grunt-sass": "^3.0.1",
+    "jquery": "^3.3.1",
+    "node-sass": "^4.9.3"
+  },
+  "dependencies": {
+    "node-static": "^0.7.10"
+  }
+}

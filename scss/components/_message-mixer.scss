@@ -1,0 +1,41 @@
+
+.chatusername {
+  display: inline-block;
+  font-weight: 700;
+
+  &.User {
+    color: hsl(196, 65%, 53%);
+  }
+
+  &.Pro {
+    color: hsl(286, 61%, 54%);
+  }
+
+  &.Mod,
+  &.ChannelEditor {
+    color: hsl(121, 77%, 55%);
+  }
+
+  &.Staff {
+    color: hsl(45, 70%, 54%);
+  }
+
+  &.Owner {
+    color: hsl(0, 0%, 100%);
+  }
+
+  &.Subscriber .badge {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.badge {
+  display: none;
+}
+
+.mixer .emoticon {
+  position: relative;
+  top: -2px;
+}

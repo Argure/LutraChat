@@ -1,0 +1,171 @@
+.chat-line {
+  display: inline;
+
+  &[data-faded] {
+    opacity: 0.8;
+  }
+
+  &.chat-notice {
+    font-weight: 300;
+    opacity: 0.7;
+
+    &[data-level='-4'] {
+      color: hsla(250, 80%, 65%, 1);
+      font-style: italic;
+    }
+
+    &[data-level='-3'] {
+      color: hsla(200, 80%, 50%, 1);
+      font-style: italic;
+    }
+
+    &[data-level='-2'] {
+      color: hsla(160, 80%, 50%, 1);
+      font-style: italic;
+    }
+
+    &[data-level='-1'] {
+      color: hsla(100, 80%, 50%, 1);
+      font-style: italic;
+    }
+
+    &[data-level='1'] {
+      color: hsla(55, 100%, 50%, 1);
+    }
+
+    &[data-level='2'] {
+      color: hsla(30, 100%, 50%, 1);
+    }
+
+    &[data-level='3'] {
+      color: hsla(0, 100%, 50%, 1);
+    }
+
+    &[data-level='4'] {
+      color: hsla(0, 100%, 50%, 1);
+      font-weight: 700;
+    }
+
+    &[data-faded] {
+      opacity: 0.3;
+    }
+  }
+
+  &.chat-timedout {
+    font-size: 0.75em;
+    opacity: 0.2;
+  }
+
+  &.chat-cleared {
+    font-size: 0.33em;
+    opacity: 0.2;
+  }
+
+  &:not(.chat-action) {
+    .chat-colon:after {
+      content: '';
+    }
+
+    .chat-message {
+      color: inherit !important;
+    }
+  }
+}
+
+.chat-channel {
+  margin-right: 0.375em;
+  font-weight: 300;
+  opacity: 0.6;
+}
+
+.chat-name {
+  font-weight: 700;
+}
+
+.chat-colon {
+  margin-right: 0.375em;
+  opacity: 0.85;
+}
+
+.chat-message {
+  font-weight: 400;
+}
+
+.emoticon {
+  display: inline-block;
+  height: 1.5em;
+  margin: {
+    top: -5px;
+    right: 0;
+    bottom: -5px;
+    left: 0;
+  }
+  background: {
+    position: center center;
+    repeat: no-repeat;
+  }
+  vertical-align: middle !important;
+}
+
+.chat-badges {
+  margin-right: 0.125em;
+
+  > div {
+    display: inline-block;
+    min-width: 1em;
+    height: 1em;
+    margin: {
+      right: 0.3em;
+      bottom: 1px;
+    }
+    background: {
+      repeat: no-repeat;
+      size: contain;
+    }
+    border-radius: 2px;
+    vertical-align: middle;
+  }
+}
+
+.chat-badge-admin {
+  background: {
+    color: hsl(40, 96%, 54%);
+    image: url('https://chat-badges.s3.amazonaws.com/admin.png');
+  }
+}
+
+.chat-badge-bot {
+  background-image: url('https://cdn.betterttv.net/tags/bot.png');
+}
+
+.chat-badge-broadcaster {
+  background: {
+    color: hsl(0, 81%, 50%);
+    image: url('https://chat-badges.s3.amazonaws.com/broadcaster.png');
+  }
+}
+
+.chat-badge-mod {
+  background: {
+    color: hsl(105, 89%, 36%);
+    image: url('https://chat-badges.s3.amazonaws.com/mod.png');
+  }
+}
+
+.chat-badge-staff {
+  background: {
+    color: hsl(268, 55%, 13%);
+    image: url('https://chat-badges.s3.amazonaws.com/staff.png');
+  }
+}
+
+.chat-badge-turbo {
+  background: {
+    color: hsl(261, 43%, 45%);
+    image: url('https://chat-badges.s3.amazonaws.com/turbo.png');
+  }
+}
+
+[class*='chat-room'] {
+  font-size: 0.5em;
+}

@@ -1,0 +1,16 @@
+{
+  "name": "LutraChat",
+  "short_name": "LutraChat",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#87716e",
+  "description": "Mixer/Twitch converged stream chat",
+  "icons": [
+    {
+      "src": "images/icon/icon.png",
+      "sizes": "92x92",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "index.html"
+}

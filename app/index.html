@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>LutraChat</title>
+    <link type="text/css" href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
+    <link type="text/css" href="css/lutrachat.min.css" rel="stylesheet">
+    <meta name="application-name" content="LutraChat">
+    <meta name="description" content="Mixer/Twitch converged stream chat">
+    <meta name="robots" content="index, follow">
+    <meta name="googlebot" content="index, follow">
+    <meta name="generator" content="Visual Studio Code">
+    <meta name="subject" content="Mixer/Twitch converged stream chat">
+    <meta name="rating" content="General">
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    <link rel="manifest" href="site.webmanifest">
+    <link rel="author" href="humans.txt">
+    <link rel="me" href="lisa@superlisa.nl">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/icon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/icon-32x32.png">
+    <link rel="icon" type="image/png" sizes="92x92" href="assets/icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="LutraChat">
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+    <meta name="theme-color" content="#87716e">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="msapplication-starturl" content="https://superlisa.nl/chat">
+    <meta name="msapplication-navbutton-color" content="#87716e">
+    <meta name="msapplication-window" content="width=1280; height=800">
+    <meta name="msapplication-TileColor" content="87716e">
+    <meta name="msapplication-config" content="https://superlisa.nl/chat/browserconfig.xml">
+    <script src="js/jquery.min.js" type="text/javascript"></script>
+  </head>
+  <body>
+    <noscript>This web application depends entirely on JavaScript and cannot function without. Please consider enabling JavaScript in your browser.</noscript>
+    <div id="twitchChat"></div>
+    <div class="wrapper">
+      <div class="chat"></div>
+    </div>
+    <script src="js/reconnecting-websocket.min.js" type="text/javascript"></script>
+    <script src="js/tmi.min.js" type="text/javascript"></script>
+    <script src="js/helpers.min.js" type="text/javascript"></script>
+    <script src="js/mixer.min.js" type="text/javascript"></script>
+    <script src="js/twitch.min.js" type="text/javascript"></script>
+    <script src="serviceworker.js" type="text/javascript"></script>
+  </body>
+</html>

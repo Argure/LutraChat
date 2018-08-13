@@ -1,0 +1,13 @@
+# humanstxt.org/
+# The humans responsible & technology colophon
+
+/* TEAM */
+  Developer: Patrick Godschalk
+  Site: https://kernelpanics.nl
+  Location: Leiden, The Netherlands
+
+/* SITE */
+  Last update: 2018/08/12
+  Language: English
+  Doctype: HTML5
+  Software: Visual Studio Code

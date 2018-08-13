@@ -68,6 +68,9 @@ module.exports = function(grunt) {
     jsdoc: {
       dist: {
         src: [
+          'js/helpers.js',
+          'js/mixer.js',
+          'js/serviceworker.js',
           'js/twitch.js'
         ]
       }

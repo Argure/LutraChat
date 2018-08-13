@@ -118,19 +118,35 @@ module.exports = function(grunt) {
         },
         files: { 'app/assets/icon-32x32.png': 'app/assets/icon.png' }
       },
+      favicon96: {
+        options: {
+          height: 96,
+          overwrite: true,
+          width: 96
+        },
+        files: { 'app/assets/icon-96x96.png': 'app/assets/icon.png' }
+      },
+      favicon192: {
+        options: {
+          height: 192,
+          overwrite: true,
+          width: 192
+        },
+        files: { 'app/assets/icon-192x192.png': 'app/assets/icon.png' }
+      },
       appletouch: {
         options: {
-          height: 92,
+          height: 180,
           overwrite: true,
-          width: 92
+          width: 180
         },
-        files: { 'app/assets/apple=touch-icon.png': 'app/assets/icon.png' }
+        files: { 'app/assets/apple-touch-icon.png': 'app/assets/icon.png' }
       },
       mstile: {
         options: {
-          height: 92,
+          height: 310,
           overwrite: true,
-          width: 92
+          width: 310
         },
         files: { 'app/assets/tile.png': 'app/assets/icon.png' }
       }

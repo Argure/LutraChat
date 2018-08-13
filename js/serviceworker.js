@@ -34,38 +34,38 @@
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
-    navigator.serviceWorker.register('/serviceworker.js');
+    navigator.serviceWorker.register('serviceworker.js');
   });
 }
 
 var version = 'v1::';
 var cachedRequests = [
-  '/',
-  '/browserconfig.xml',
-  '/crossdomain.xml',
-  '/humans.txt',
-  '/index.html',
-  '/robots.txt',
-  '/site.webmanifest',
-  '/sitemap.xml',
-  '/assets/mixer.png',
-  '/assets/twitch.svg',
-  '/css/lutrachat.min.css',
-  '/js/helpers.min.js',
-  '/js/jquery.min.js',
-  '/js/jquery.min.map',
-  '/js/mixer.min.js',
-  '/js/reconnecting-websocket.min.js',
-  '/js/tmi.js.map',
-  '/js/tmi.min.js',
-  '/js/twitch.min.js',
-  '/images/icon/favicon-16x16.png',
-  '/images/icon/favicon-32x32.png',
-  '/images/icon/favicon-96x96.png',
-  '/images/icon/icon-512.png',
-  '/images/icon/icon.png',
-  '/images/icon/tile.png',
-  '/images/icon/tile-wide.png'
+  './',
+  './browserconfig.xml',
+  './crossdomain.xml',
+  './humans.txt',
+  './index.html',
+  './robots.txt',
+  './site.webmanifest',
+  './sitemap.xml',
+  './assets/mixer.png',
+  './assets/twitch.svg',
+  './css/lutrachat.min.css',
+  './js/helpers.min.js',
+  './js/jquery.min.js',
+  './js/jquery.min.map',
+  './js/mixer.min.js',
+  './js/reconnecting-websocket.min.js',
+  './js/tmi.js.map',
+  './js/tmi.min.js',
+  './js/twitch.min.js',
+  './assets/apple-touch-icon.png',
+  './assets/icon-16x16.png',
+  './assets/icon-32x32.png',
+  './assets/icon-96x96.png',
+  './assets/icon-192x192.png',
+  './assets/icon.png',
+  './assets/tile.png'
 ];
 
 self.addEventListener('install', function(event) {

@@ -7,8 +7,13 @@
   "description": "Mixer/Twitch converged stream chat",
   "icons": [
     {
-      "src": "images/icon/icon.png",
-      "sizes": "92x92",
+      "src": "assets/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icon.png",
+      "sizes": "512x512",
       "type": "image/png"
     }
   ],

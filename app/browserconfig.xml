@@ -3,6 +3,8 @@
   <msapplication>
     <tile>
       <square70x70logo src="assets/tile.png" />
+      <square150x150logo src="assets/tile.png" />
+      <square310x310logo src="assets/tile.png" />
     </tile>
   </msapplication>
 </browserconfig>

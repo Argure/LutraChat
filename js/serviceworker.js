@@ -29,9 +29,7 @@
  */
 
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function() {
-    navigator.serviceWorker.register('serviceworker.js');
-  });
+  navigator.serviceWorker.register('serviceworker.js');
 }
 
 var version = 'v1::';

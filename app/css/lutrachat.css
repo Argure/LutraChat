@@ -264,3 +264,8 @@ body {
   margin-right: 7px;
   background-image: url("../assets/twitch.svg");
 }
+
+.chatmessage a {
+  color: white;
+  text-decoration: none;
+}

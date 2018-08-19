@@ -1,0 +1,7 @@
+ * Add BTTV emote support
+ * Add support for all badges rather than depending on userstate
+ * Add a configuration wizard
+ * Support own OAuth key for Twitch IRC
+ * Support differing usernames on Twitch and Mixer
+ * Add handlers for Mixer moderation
+ * Links clickable

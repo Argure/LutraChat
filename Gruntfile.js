@@ -89,6 +89,12 @@ module.exports = function(grunt) {
             ]
           },
           {
+            cwd: 'node_modules/underscore/',
+            dest: 'app/js',
+            expand: true,
+            src: ['underscore-min.js']
+          },
+          {
             cwd: 'js/vendor',
             dest: 'app/js',
             expand: true,

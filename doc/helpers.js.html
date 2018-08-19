@@ -29,42 +29,42 @@
             <pre class="prettyprint source linenums"><code>/**
  * @file Common helper functions
  * @author Patrick Godschalk &lt;patrick@kernelpanics.nl>
- * @copyright Patrick Godschalk 2015-2018
- * @license BSD-2-Clause
+ * @copyright Patrick Godschalk 2015-2018 - code reused from
+ *            git@github.com:crowbartools/Mixer-Chat-Overlay copyright (c) 2016
+ *            Firebottle under MIT license, code reused from
+ *            git@gist.github.com:6213ff17d3981c861adf copyright (c) 2015
+ *            AlcaDesign under MIT license, code reused from
+ *            http://stackoverflow.com/a/3410557 copyright (c) 2010 Tim Down
+ *            under CC-BY-SA 3.0 license, code reused from
+ *            http://stackoverflow.com/a/21196265 copyright (c) 2014 adamesque
+ *            under CC-BY-SA 3.0 license
+ * @license MIT
  */
 
 /*
- * Copyright (c) 2015-2018 Patrick Godschalk All rights reserved.
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ * Copyright (c) 2018 Patrick Godschalk
  *
- * 1. Redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- * notice, this list of conditions and the following disclaimer in the
- * documentation and/or other materials provided with the distribution.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
  */
 
 var getUrlParameter = function getUrlParameter(sParam) {
-  var sPageURL = decodeURIComponent(window.location.search.substring(1)),
-    sURLVariables = sPageURL.split('&amp;'),
-    sParameterName,
-    i;
+  var sPageURL = decodeURIComponent(window.location.search.substring(1)), sURLVariables = sPageURL.split('&amp;'), sParameterName, i;
 
   for (i = 0; i &lt; sURLVariables.length; i++) {
     sParameterName = sURLVariables[i].split('=');
@@ -75,11 +75,85 @@ var getUrlParameter = function getUrlParameter(sParam) {
   }
 };
 
-// Headers for AJAX calls
+/**
+ * Sets a Client-ID request header with the OAuth key.
+ *
+ * @param {*} xhr
+ */
 function setHeader(xhr) {
   xhr.setRequestHeader('Client-ID', '8682f64ae59cbcba5cd701c205b54b04a424b46ca064e563'); //DevSkim: ignore DS173237
 }
 
+/**
+ * Simplification of jQuery Ajax
+ *
+ * @param {*} uri
+ * @param {*} data
+ * @param {*} headers
+ * @param {*} method
+ * @param {*} cb
+ * @param {*} json
+ */
+function get(uri, data, headers, method, cb, json) {
+  return $.ajax({
+    url: uri || '',
+    data: data || {},
+    headers: headers || {},
+    type: method || 'GET',
+    dataType: json !== true ? json : 'jsonp', // Prefer jsonp
+    success: cb || function() {
+      console.log('success', arguments);
+    },
+    error: cb || function() {
+      console.log('error', uri, arguments);
+    }
+  });
+}
+
+/**
+ * Find occurences of a string
+ *
+ * @copyright 2010 Tim Down http://stackoverflow.com/a/3410557
+ * @license CC-BY-SA-3.0
+ * @param {string} searchStr
+ * @param {string} str
+ * @param {boolean} caseSensitive
+ */
+function getIndicesOf(searchStr, str, caseSensitive) {
+  var startIndex = 0, searchStrLen = searchStr.length;
+  var index, indices = [];
+
+  if (!caseSensitive) {
+    str = str.toLowerCase();
+    searchStr = searchStr.toLowerCase();
+  }
+  while ((index = str.indexOf(searchStr, startIndex)) > -1) {
+    indices.push(index);
+    startIndex = index + searchStrLen;
+  }
+  return indices;
+}
+
+/**
+ * Merge array of objects
+ *
+ * @copyright 2014 adamesque http://stackoverflow.com/a/21196265
+ * @license CC-BY-SA-3.0
+ * @param {*} roles
+ */
+function do_merge(roles) {
+  var merger = function(a, b) {
+    if (_.isObject(a)) {
+      return _.extend({}, a, b, merger);
+    } else {
+      return a || b;
+    }
+  };
+  var args = _.flatten([{}, roles, merger]);
+  return _.extend.apply(_, args);
+}
+
+// Set a background colour to a CSS colour string if defined.
 $('body').css({ 'background-color': getUrlParameter('bgcolor') });
 </code></pre>
         </article>
@@ -91,13 +165,13 @@ $('body').css({ 'background-color': getUrlParameter('bgcolor') });
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#addAsyncCall">addAsyncCall</a></li><li><a href="global.html#badges">badges</a></li><li><a href="global.html#capitalize">capitalize</a></li><li><a href="global.html#chat">chat</a></li><li><a href="global.html#chatNotice">chatNotice</a></li><li><a href="global.html#clearChat">clearChat</a></li><li><a href="global.html#dehash">dehash</a></li><li><a href="global.html#do_merge">do_merge</a></li><li><a href="global.html#errorHandle">errorHandle</a></li><li><a href="global.html#formatEmotes">formatEmotes</a></li><li><a href="global.html#get">get</a></li><li><a href="global.html#getIndicesOf">getIndicesOf</a></li><li><a href="global.html#handleChat">handleChat</a></li><li><a href="global.html#hosting">hosting</a></li><li><a href="global.html#htmlEntities">htmlEntities</a></li><li><a href="global.html#mergeBTTVEmotes">mergeBTTVEmotes</a></li><li><a href="global.html#mixerSocketConnect">mixerSocketConnect</a></li><li><a href="global.html#setHeader">setHeader</a></li><li><a href="global.html#timeout">timeout</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Mon Aug 13 2018 13:49:48 GMT+0200 (Central European Summer Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sun Aug 19 2018 13:31:09 GMT+0200 (Central European Summer Time)
 </footer>
 
 <script> prettyPrint(); </script>

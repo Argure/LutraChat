@@ -29,35 +29,32 @@
             <pre class="prettyprint source linenums"><code>/**
  * @file Mixer chat handler
  * @author Patrick Godschalk &lt;patrick@kernelpanics.nl>
- * @copyright Patrick Godschalk 2015-2018
- * @license BSD-2-Clause
+ * @copyright Patrick Godschalk 2015-2018 - code reused from
+ *            git@github.com:crowbartools/Mixer-Chat-Overlay copyright (c) 2016
+ *            Firebottle under MIT license
+ * @license MIT
  */
 
 /*
- * Copyright (c) 2015-2018 Patrick Godschalk All rights reserved.
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ * Copyright (c) 2018 Patrick Godschalk
  *
- * 1. Redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- * notice, this list of conditions and the following disclaimer in the
- * documentation and/or other materials provided with the distribution.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
  */
 
 // Get User ID
@@ -71,7 +68,7 @@ $.ajax({
   success: function(data) {
     userID = data.id;
     userPartner = data.partnered;
-    if (userPartner === true){
+    if (userPartner === true) {
       subIcon = data.badge.url;
     } else {
       subIcon = '';
@@ -93,13 +90,16 @@ $.ajax({
 
 // General settings
 var chatTime = getUrlParameter('timer');
-timeToShowChat = chatTime; // in Milliseconds
+timeToShowChat = chatTime; // in milliseconds
 
-// Connect to Mixer websocket
+/**
+ * Connect to Mixer websocket
+ *
+ * @param {*} endpoints
+ */
 function mixerSocketConnect(endpoints) {
-
   if ('WebSocket' in window) {
-    // Open a web socket
+    // Open a websocket
     var randomEndpoint = endpoints[Math.floor(Math.random() * endpoints.length)];
     var ws = new ReconnectingWebSocket(randomEndpoint);
     console.log('Connected to ' + randomEndpoint);
@@ -137,12 +137,17 @@ function mixerSocketConnect(endpoints) {
     };
 
   } else {
-    // The browser doesn't support Websockets
+    // The browser doesn't support websockets
     console.error('Woah, something broke. Abandon ship!');
   }
 }
 
-// Chat messages
+/**
+ * Application logic for all Mixer events. Called chat for brevity, but also
+ * handles chat mutations e.g. moderation events.
+ *
+ * @param {Object} evt JSON object from Mixer websocket
+ */
 function chat(evt){
   var evtString = $.parseJSON(evt.data);
   var eventType = evtString.event;
@@ -170,9 +175,9 @@ function chat(evt){
         var emoticonPack = this.pack;
         var emoticonCoordX = this.coords.x;
         var emoticonCoordY = this.coords.y;
-        if (emoticonSource == 'builtin'){
+        if (emoticonSource == 'builtin') {
           completeMessage += '&lt;div class="emoticon" style="background-image: url(https://Mixer.com/_latest/emoticons/' + emoticonPack + '.png); background-position: -' + emoticonCoordX + 'px -' + emoticonCoordY + 'px; height: 24px; width: 24px; display: inline-block;">&lt;/div>';
-        } else if (emoticonSource == 'external'){
+        } else if (emoticonSource == 'external') {
           completeMessage += '&lt;div class="emoticon" style="background-image: url(' + emoticonPack + '); background-position: -' + emoticonCoordX + 'px -' + emoticonCoordY+'px; height: 24px; width: 24px; display: inline-block;">&lt;/div>';
         }
       } else if (type == 'link') {
@@ -188,14 +193,15 @@ function chat(evt){
     // Place the completed chat message into the chat area.
     // Fade message in, wait X time, fade out, then remove.
 
-    // Ignore self for temporary LutraBot workaround
+    // This really needs to be done in a better way but for now this is how the
+    // relay bot is ignored.
     if (username == 'superlisa') {
       return;
     } else {
-      if (timeToShowChat === '0'){
-        $('&lt;div class=\'chatmessage mixer\' id=\'' + messageID + '\'>&lt;div class=\'chatusername ' + userroles + '\'>' + username + ' &lt;div class=\'badge\'>&lt;img src=' + subIcon + '>&lt;/div>&lt;/div> ' + completeMessage+'&lt;/div>').appendTo('.chat');
+      if (timeToShowChat === '0') {
+        $('&lt;div class=\'chatmessage mixer\' id=\'' + messageID + '\'>&lt;div class=\'chatusername ' + userroles + '\'>' + username + ' &lt;div class=\'badge\'>&lt;img src=' + subIcon + '>&lt;/div>&lt;/div> ' + completeMessage + '&lt;/div>').appendTo('.chat');
       } else {
-        $('&lt;div class=\'chatmessage mixer\' id=\'' + messageID + '\'>&lt;div class=\'chatusername ' + userroles + '\'>' + username + ' &lt;div class=\'badge\'>&lt;img src=' + subIcon + '>&lt;/div>&lt;/div> ' + completeMessage+'&lt;/div>').appendTo('.chat').hide().fadeIn('fast').delay(timeToShowChat).fadeOut('fast', function() {
+        $('&lt;div class=\'chatmessage mixer\' id=\'' + messageID + '\'>&lt;div class=\'chatusername ' + userroles + '\'>' + username + ' &lt;div class=\'badge\'>&lt;img src=' + subIcon + '>&lt;/div>&lt;/div> ' + completeMessage + '&lt;/div>').appendTo('.chat').hide().fadeIn('fast').delay(timeToShowChat).fadeOut('fast', function() {
           $(this).remove();
         });
       }
@@ -210,7 +216,11 @@ function chat(evt){
   }
 }
 
-// Error handling and keepalive
+/**
+ * Error handling and keepalive
+ *
+ * @param {Object} ws
+ */
 function errorHandle(ws) {
   var wsState = ws.readyState;
 
@@ -232,13 +242,13 @@ function errorHandle(ws) {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#addAsyncCall">addAsyncCall</a></li><li><a href="global.html#badges">badges</a></li><li><a href="global.html#capitalize">capitalize</a></li><li><a href="global.html#chat">chat</a></li><li><a href="global.html#chatNotice">chatNotice</a></li><li><a href="global.html#clearChat">clearChat</a></li><li><a href="global.html#dehash">dehash</a></li><li><a href="global.html#do_merge">do_merge</a></li><li><a href="global.html#errorHandle">errorHandle</a></li><li><a href="global.html#formatEmotes">formatEmotes</a></li><li><a href="global.html#get">get</a></li><li><a href="global.html#getIndicesOf">getIndicesOf</a></li><li><a href="global.html#handleChat">handleChat</a></li><li><a href="global.html#hosting">hosting</a></li><li><a href="global.html#htmlEntities">htmlEntities</a></li><li><a href="global.html#mergeBTTVEmotes">mergeBTTVEmotes</a></li><li><a href="global.html#mixerSocketConnect">mixerSocketConnect</a></li><li><a href="global.html#setHeader">setHeader</a></li><li><a href="global.html#timeout">timeout</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Mon Aug 13 2018 13:49:48 GMT+0200 (Central European Summer Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sun Aug 19 2018 13:31:09 GMT+0200 (Central European Summer Time)
 </footer>
 
 <script> prettyPrint(); </script>

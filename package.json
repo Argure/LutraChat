@@ -33,7 +33,8 @@
     "grunt-postcss": "^0.9.0",
     "grunt-sass": "^3.0.1",
     "jquery": "^3.3.1",
-    "node-sass": "^4.9.3"
+    "node-sass": "^4.9.3",
+    "underscore": "^1.9.1"
   },
   "dependencies": {
     "node-static": "^0.7.10"

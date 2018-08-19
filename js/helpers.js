@@ -9,7 +9,10 @@
  *            http://stackoverflow.com/a/3410557 copyright (c) 2010 Tim Down
  *            under CC-BY-SA 3.0 license, code reused from
  *            http://stackoverflow.com/a/21196265 copyright (c) 2014 adamesque
- *            under CC-BY-SA 3.0 license
+ *            under CC-BY-SA 3.0 license, code reused from
+ *            git@github.com:component/regexps copyright (c) 2012 tj under MIT
+ *            license
+ *
  * @license MIT
  */
 
@@ -53,7 +56,7 @@ var getUrlParameter = function getUrlParameter(sParam) {
  * @param {*} xhr
  */
 function setHeader(xhr) {
-  xhr.setRequestHeader('Client-ID', '8682f64ae59cbcba5cd701c205b54b04a424b46ca064e563'); //DevSkim: ignore DS173237
+  xhr.setRequestHeader('Client-ID', 'gdswj1g5j9qq52avv4dvm27gf4t3mc'); //DevSkim: ignore DS173237
 }
 
 /**
@@ -123,6 +126,19 @@ function do_merge(roles) {
   };
   var args = _.flatten([{}, roles, merger]);
   return _.extend.apply(_, args);
+}
+
+/**
+ * Detects and converts links into HTML anchor elements. Will always return
+ * HTTPS since plain text HTTP is deprecated.
+ *
+ * @copyright 2012 tj https://github.com/component/regexps/blob/master/index.js
+ * @license MIT
+ * @param {string} text
+ */
+function linkify(text) {
+  var exp = /^(?:(?:ht|f)tp(?:s?)\:\/\/|~\/|\/)?(?:\w+:\w+@)?((?:(?:[-\w\d{1-3}]+\.)+(?:com|org|net|gov|mil|biz|info|mobi|name|aero|jobs|edu|co\.uk|ac\.uk|it|fr|tv|museum|asia|local|travel|[a-z]{2}))|((\b25[0-5]\b|\b[2][0-4][0-9]\b|\b[0-1]?[0-9]?[0-9]\b)(\.(\b25[0-5]\b|\b[2][0-4][0-9]\b|\b[0-1]?[0-9]?[0-9]\b)){3}))(?::[\d]{1,5})?(?:(?:(?:\/(?:[-\w~!$+|.,=]|%[a-f\d]{2})+)+|\/)+|\?|#)?(?:(?:\?(?:[-\w~!$+|.,*:]|%[a-f\d{2}])+=?(?:[-\w~!$+|.,*:=]|%[a-f\d]{2})*)(?:&(?:[-\w~!$+|.,*:]|%[a-f\d{2}])+=?(?:[-\w~!$+|.,*:=]|%[a-f\d]{2})*)*)*(?:#(?:[-\w~!$ |\/.,*:;=]|%[a-f\d]{2})*)?$/i;
+  return text.replace(exp, '<a type=\'text/html\' href=\'https://$1\' rel=\'external noopener\' target=\'_blank\'>$1</a>');
 }
 
 // Set a background colour to a CSS colour string if defined.

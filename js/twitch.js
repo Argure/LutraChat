@@ -353,8 +353,8 @@ function handleChat(channel, user, message, self) {
   chatMessage.className = 'chat-message';
 
   chatMessage.style.color = color;
-  chatMessage.innerHTML = showEmotes ? formatEmotes(message, user.emotes, channel)
-    : htmlEntities(message);
+  chatMessage.innerHTML = linkify(showEmotes ? formatEmotes(message, user.emotes, channel)
+    : htmlEntities(message));
 
   if (client.opts.channels.length > 1 && showChannel) {
     chatLine.appendChild(chatChannel);

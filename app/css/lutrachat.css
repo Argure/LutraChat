@@ -47,6 +47,10 @@ body {
   top: -2px;
 }
 
+.action {
+  font-style: italic;
+}
+
 .chat-line {
   display: inline;
 }

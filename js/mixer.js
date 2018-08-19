@@ -132,11 +132,13 @@ function chat(evt){
     var usermessage = eventMessage.message.message;
     var messageID = eventMessage.id;
     var completeMessage = '';
+    var action = '';
+    if(eventMessage.message.meta.me) action = 'action';
 
     $.each(usermessage, function() {
       var type = this.type;
 
-      if (type == 'text'){
+      if (type == 'text') {
         var messageTextOrig = this.data;
         var messageText = messageTextOrig.replace(/([<>&])/g, function(chr) {
           return chr === '<' ? '&lt;' : chr === '>' ? '&gt;' : '&amp;';
@@ -171,9 +173,9 @@ function chat(evt){
       return;
     } else {
       if (timeToShowChat === '0') {
-        $('<div class=\'chatmessage mixer\' id=\'' + messageID + '\'><div class=\'chatusername ' + userroles + '\'>' + username + ' <div class=\'badge\'><img src=' + subIcon + '></div></div> ' + completeMessage + '</div>').appendTo('.chat');
+        $('<div class=\'chatmessage mixer ' + eventMessage.user_id + ' ' + action + '\' id=\'' + messageID + '\'><div class=\'chatusername ' + userroles + '\'>' + username + ' <div class=\'badge\'><img src=' + subIcon + '></div></div> ' + linkify(completeMessage) + '</div>').appendTo('.chat');
       } else {
-        $('<div class=\'chatmessage mixer\' id=\'' + messageID + '\'><div class=\'chatusername ' + userroles + '\'>' + username + ' <div class=\'badge\'><img src=' + subIcon + '></div></div> ' + completeMessage + '</div>').appendTo('.chat').hide().fadeIn('fast').delay(timeToShowChat).fadeOut('fast', function() {
+        $('<div class=\'chatmessage mixer ' + eventMessage.user_id + ' ' + action + '\' id=\'' + messageID + '\'><div class=\'chatusername ' + userroles + '\'>' + username + ' <div class=\'badge\'><img src=' + subIcon + '></div></div> ' + linkify(completeMessage) + '</div>').appendTo('.chat').hide().fadeIn('fast').delay(timeToShowChat).fadeOut('fast', function() {
           $(this).remove();
         });
       }
@@ -185,6 +187,8 @@ function chat(evt){
   } else if (eventType == 'DeleteMessage') {
     // If someone deletes a message, delete it from screen.
     $('#' + eventMessage.id).remove();
+  } else if (eventType == 'PurgeMessage') {
+    $('.' + eventMessage.user_id).remove();
   }
 }
 

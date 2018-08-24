@@ -1,0 +1,18 @@
+.emoticon,
+.emoji {
+  position: relative;
+  top: -2px;
+  display: inline-block;
+  height: 1.5em;
+  margin: {
+    top: -5px;
+    right: 0;
+    bottom: -5px;
+    left: 0;
+  }
+  background: {
+    position: center center;
+    repeat: no-repeat;
+  }
+  vertical-align: middle;
+}

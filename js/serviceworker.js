@@ -52,6 +52,7 @@ var cachedRequests = [
   './js/reconnecting-websocket.min.js',
   './js/tmi.js.map',
   './js/tmi.min.js',
+  './js/twemoji.min.js',
   './js/twitch.min.js',
   './assets/apple-touch-icon.png',
   './assets/icon-16x16.png',

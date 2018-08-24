@@ -5,8 +5,8 @@ options:
   merge-default-rules: false
 rules:
   bem-depth:
-    - 1
-    - max-depth: 1
+    - 3
+    - max-depth: 3
   border-zero:
     - 1
     - convention: zero

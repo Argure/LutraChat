@@ -1,0 +1,22 @@
+.badges {
+  &__badge {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-right: 3px;
+
+    &--twitch {
+      position: relative;
+      top: 2px;
+    }
+  }
+
+  // Never display badges div on Mixer except when subscribed
+  .chat__message--mixer & {
+    display: none;
+  }
+
+  .chat__message--mixer .chat__message__username--Subscriber & {
+    display: inline-block;
+  }
+}

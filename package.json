@@ -17,7 +17,7 @@
     "relay"
   ],
   "author": "Patrick Godschalk",
-  "license": "BSD-2-Clause",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/Argure/LutraChat/issues"
   },
@@ -27,14 +27,15 @@
     "grunt": "^1.0.3",
     "grunt-contrib-copy": "^1.0.0",
     "grunt-contrib-cssmin": "^2.2.1",
-    "grunt-contrib-uglify": "^3.4.0",
+    "grunt-contrib-uglify-es": "github:gruntjs/grunt-contrib-uglify#harmony",
     "grunt-image-resize": "^1.0.0",
     "grunt-jsdoc": "^2.2.1",
     "grunt-postcss": "^0.9.0",
     "grunt-sass": "^3.0.1",
     "jquery": "^3.3.1",
     "node-sass": "^4.9.3",
-    "underscore": "^1.9.1"
+    "twemoji": "^11.0.1",
+    "uglify-js-es6": "^2.8.9"
   },
   "dependencies": {
     "node-static": "^0.7.10"

@@ -88,10 +88,6 @@ $.ajax({
   }
 });
 
-// General settings
-var chatTime = getUrlParameter('timer');
-timeToShowChat = chatTime; // in milliseconds
-
 /**
  * Connect to Mixer websocket
  *
@@ -113,11 +109,15 @@ function mixerSocketConnect(endpoints) {
         id: 1
       });
       ws.send(connector);
-      console.log('Connection Opened...');
+      console.log('Connection opened...');
 
-      $('&lt;div class=\'chatmessage\' id=\'1\'>Mixer chat connection established to ' + username + '.&lt;/div>').appendTo('.chat').hide().fadeIn('fast').delay(5000).fadeOut('fast', function() {
-        $(this).remove();
-      });
+      if (timeToShowChat === '0') {
+        $('&lt;div class=\'chat__message chat__message--mixer\' id=\'1\'>Mixer chat connection established to ' + username + '.&lt;/div>').appendTo('.chat');
+      } else {
+        $('&lt;div class=\'chat__message chat__message--mixer\' id=\'1\'>Mixer chat connection established to ' + username + '.&lt;/div>').appendTo('.chat').hide().fadeIn('fast').delay(timeToShowChat).fadeOut('fast', function() {
+          $(this).remove();
+        });
+      }
 
       // Error handling and keepalive
       setInterval(function() {
@@ -125,13 +125,13 @@ function mixerSocketConnect(endpoints) {
       }, 10000);
     };
 
-    ws.onmessage = function (evt) {
+    ws.onmessage = function(evt) {
       chat(evt);
       // Debug - Log all chat events.
       //console.log(evt);
     };
 
-    ws.onclose = function(){
+    ws.onclose = function() {
       // Websocket is closed
       console.log('Connection is closed...');
     };
@@ -148,7 +148,7 @@ function mixerSocketConnect(endpoints) {
  *
  * @param {Object} evt JSON object from Mixer websocket
  */
-function chat(evt){
+function chat(evt) {
   var evtString = $.parseJSON(evt.data);
   var eventType = evtString.event;
   var eventMessage = evtString.data;
@@ -161,7 +161,7 @@ function chat(evt){
     var messageID = eventMessage.id;
     var completeMessage = '';
     var action = '';
-    if(eventMessage.message.meta.me) action = 'action';
+    if(eventMessage.message.meta.me) action = 'chat__message--action';
 
     $.each(usermessage, function() {
       var type = this.type;
@@ -178,9 +178,9 @@ function chat(evt){
         var emoticonCoordX = this.coords.x;
         var emoticonCoordY = this.coords.y;
         if (emoticonSource == 'builtin') {
-          completeMessage += '&lt;div class="emoticon" style="background-image: url(https://Mixer.com/_latest/emoticons/' + emoticonPack + '.png); background-position: -' + emoticonCoordX + 'px -' + emoticonCoordY + 'px; height: 24px; width: 24px; display: inline-block;">&lt;/div>';
+          completeMessage += '&lt;div class="emoticon emoticon--mixer" style="background-image: url(https://Mixer.com/_latest/emoticons/' + emoticonPack + '.png); background-position: -' + emoticonCoordX + 'px -' + emoticonCoordY + 'px; height: 24px; width: 24px; display: inline-block;">&lt;/div>';
         } else if (emoticonSource == 'external') {
-          completeMessage += '&lt;div class="emoticon" style="background-image: url(' + emoticonPack + '); background-position: -' + emoticonCoordX + 'px -' + emoticonCoordY+'px; height: 24px; width: 24px; display: inline-block;">&lt;/div>';
+          completeMessage += '&lt;div class="emoticon emoticon--mixer" style="background-image: url(' + emoticonPack + '); background-position: -' + emoticonCoordX + 'px -' + emoticonCoordY+'px; height: 24px; width: 24px; display: inline-block;">&lt;/div>';
         }
       } else if (type == 'link') {
         var chatLinkOrig = this.text;
@@ -194,16 +194,13 @@ function chat(evt){
 
     // Place the completed chat message into the chat area.
     // Fade message in, wait X time, fade out, then remove.
-
-    // This really needs to be done in a better way but for now this is how the
-    // relay bot is ignored.
-    if (username == 'superlisa') {
+    if (completeMessage.endsWith('[T]')) {
       return;
     } else {
       if (timeToShowChat === '0') {
-        $('&lt;div class=\'chatmessage mixer ' + eventMessage.user_id + ' ' + action + '\' id=\'' + messageID + '\'>&lt;div class=\'chatusername ' + userroles + '\'>' + username + ' &lt;div class=\'badge\'>&lt;img src=' + subIcon + '>&lt;/div>&lt;/div> ' + linkify(completeMessage) + '&lt;/div>').appendTo('.chat');
+        $('&lt;div class=\'chat__message chat__message--mixer ' + eventMessage.user_id + ' ' + action + '\' id=\'' + messageID + '\'>&lt;div class=\'chat__message__username chat__message__username--' + userroles + '\'>' + username + ' &lt;div class=\'badges\'>&lt;img class=\'badges__badge--mixer\' src=' + subIcon + '>&lt;/div>&lt;/div> ' + completeMessage + '&lt;/div>').appendTo('.chat');
       } else {
-        $('&lt;div class=\'chatmessage mixer ' + eventMessage.user_id + ' ' + action + '\' id=\'' + messageID + '\'>&lt;div class=\'chatusername ' + userroles + '\'>' + username + ' &lt;div class=\'badge\'>&lt;img src=' + subIcon + '>&lt;/div>&lt;/div> ' + linkify(completeMessage) + '&lt;/div>').appendTo('.chat').hide().fadeIn('fast').delay(timeToShowChat).fadeOut('fast', function() {
+        $('&lt;div class=\'chat__message chat__message--mixer ' + eventMessage.user_id + ' ' + action + '\' id=\'' + messageID + '\'>&lt;div class=\'chat__message__username chat__message__username--' + userroles + '\'>' + username + ' &lt;div class=\'badges\'>&lt;img class=\'badges__badge--mixer\' src=' + subIcon + '>&lt;/div>&lt;/div> ' + completeMessage + '&lt;/div>').appendTo('.chat').hide().fadeIn('fast').delay(timeToShowChat).fadeOut('fast', function() {
           $(this).remove();
         });
       }
@@ -211,7 +208,7 @@ function chat(evt){
 
   } else if (eventType == 'ClearMessages') {
     // If someone clears chat, then clear all messages on screen.
-    $('.chatmessage').remove();
+    $('.chat__message').remove();
   } else if (eventType == 'DeleteMessage') {
     // If someone deletes a message, delete it from screen.
     $('#' + eventMessage.id).remove();
@@ -246,13 +243,13 @@ function errorHandle(ws) {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#addAsyncCall">addAsyncCall</a></li><li><a href="global.html#badges">badges</a></li><li><a href="global.html#capitalize">capitalize</a></li><li><a href="global.html#chat">chat</a></li><li><a href="global.html#chatNotice">chatNotice</a></li><li><a href="global.html#clearChat">clearChat</a></li><li><a href="global.html#dehash">dehash</a></li><li><a href="global.html#do_merge">do_merge</a></li><li><a href="global.html#errorHandle">errorHandle</a></li><li><a href="global.html#formatEmotes">formatEmotes</a></li><li><a href="global.html#get">get</a></li><li><a href="global.html#getIndicesOf">getIndicesOf</a></li><li><a href="global.html#handleChat">handleChat</a></li><li><a href="global.html#hosting">hosting</a></li><li><a href="global.html#htmlEntities">htmlEntities</a></li><li><a href="global.html#linkify">linkify</a></li><li><a href="global.html#mergeBTTVEmotes">mergeBTTVEmotes</a></li><li><a href="global.html#mixerSocketConnect">mixerSocketConnect</a></li><li><a href="global.html#setHeader">setHeader</a></li><li><a href="global.html#timeout">timeout</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#addListeners">addListeners</a></li><li><a href="global.html#chat">chat</a></li><li><a href="global.html#errorHandle">errorHandle</a></li><li><a href="global.html#getChan">getChan</a></li><li><a href="global.html#mixerSocketConnect">mixerSocketConnect</a></li><li><a href="global.html#removeAdminChatLine">removeAdminChatLine</a></li><li><a href="global.html#removeChatLine">removeChatLine</a></li><li><a href="global.html#setHeader">setHeader</a></li><li><a href="global.html#showAdminMessage">showAdminMessage</a></li><li><a href="global.html#showMessage">showMessage</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sun Aug 19 2018 17:02:18 GMT+0200 (Central European Summer Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Fri Aug 24 2018 21:06:29 GMT+0200 (Central European Summer Time)
 </footer>
 
 <script> prettyPrint(); </script>

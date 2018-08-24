@@ -11,19 +11,6 @@
   overflow: hidden;
 }
 
-.error {
-  width: 500px;
-  padding: 10px;
-  margin: auto;
-  border: {
-    width: 1px;
-    style: solid;
-    color: hsl(0, 0%, 0%);
-  }
-  text-align: center;
-  box-shadow: 2px 2px 2px hsl(0, 0%, 53%);
-}
-
 .chat {
   position: absolute;
   bottom: 0;
@@ -35,43 +22,4 @@
   }
   color: hsl(0, 0%, 100%);
   overflow: hidden;
-}
-
-.chatmessage {
-  padding: 7px;
-  margin: 5px;
-  background-color: hsla(0, 0%, 0%, 0.45);
-
-  &.mixer,
-  &.twitch {
-    &::before {
-      display: inline-block;
-      width: 15px;
-      background: {
-        position: center center;
-        repeat: no-repeat;
-        size: contain;
-      }
-      content: '';
-    }
-  }
-
-  &.mixer::before {
-    height: 10px;
-    margin-right: 6px;
-    background-image: url('../assets/mixer.png');
-  }
-
-  &.twitch::before {
-    position: relative;
-    top: 2px;
-    height: 14px;
-    margin-right: 7px;
-    background-image: url('../assets/twitch.svg');
-  }
-
-  a {
-    color: hsl(0, 0%, 100%);
-    text-decoration: none;
-  }
 }

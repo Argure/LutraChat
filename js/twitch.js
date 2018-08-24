@@ -3,7 +3,7 @@
  * @author Patrick Godschalk <patrick@kernelpanics.nl>
  * @copyright Patrick Godschalk 2015-2018 - code reused from
  *            git@gist.github.com:742d8cb82e3e93ad4205.git and
- *            git@gist.github.com:6213ff17d3981c861adf copyright (c) 2015-2016
+ *            https://codepen.io/Alca/pen/zzomog copyright (c) 2015-2016
  *            AlcaDesign under MIT license
  * @license MIT
  */
@@ -30,39 +30,40 @@
  * IN THE SOFTWARE.
  */
 
-// Get username
-var username = getUrlParameter('username');
+const chatEle = document.getElementsByClassName('chat')[0];
+const twitchBadgeCache = { data: { global: {} } };
+const bttvEmoteCache = {
+  lastUpdated: 0,
+  data: { global: [] },
+  urlTemplate: '//cdn.betterttv.net/emote/{{id}}/{{image}}'
+};
 
-// Twitch chat handler configuration
-var channels = [username],
-  fadeDelay = 5000,    //?
-  showChannel = false, // Show channel name in message
-  useColor = true,     // Use coloured usernames
-  showBadges = true,   // Show badges before username
-  showEmotes = true,   // Show Twitch emotes
-  doTimeouts = true,   // Timeouts also affect LutraChat
-  doChatClears = true, // Clear chats also affect LutraChat
-  showHosting = false, // Show notice when hosting
-  showConnectionNotices = false; // Show notice when user joins or leaves
+const krakenBase = 'https://api.twitch.tv/kraken/';
+const krakenClientID = 'gdswj1g5j9qq52avv4dvm27gf4t3mc';
 
-// Emotes configuration
-var twitchEmotes = {
-    urlTemplate: 'https://static-cdn.jtvnw.net/emoticons/v1/{{id}}/{{image}}',
-    scales: { 1: '1.0', 2: '2.0', 3: '3.0' }
-  },
-  bttvEmotes = {
-    urlTemplate: 'https://cdn.betterttv.net/emote/{{id}}/{{image}}',
-    scales: { 1: '1x', 2: '2x', 3: '3x' },
-    bots: [],
-    emoteCodeList: [],
-    emotes: [],
-    subEmotesCodeList: [],
-    allowEmotesAnyChannel: false
-  },
-  emoteScale = 3;
+const chatFilters = [
+  // '\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF', // Partial Latin-1 Supplement
+  // '\u0100-\u017F', // Latin Extended-A
+  // '\u0180-\u024F', // Latin Extended-B
+  '\u0250-\u02AF', // IPA Extensions
+  '\u02B0-\u02FF', // Spacing Modifier Letters
+  '\u0300-\u036F', // Combining Diacritical Marks
+  '\u0370-\u03FF', // Greek and Coptic
+  '\u0400-\u04FF', // Cyrillic
+  '\u0500-\u052F', // Cyrillic Supplement
+  '\u0530-\u1FFF', // Bunch of non-English
+  '\u2100-\u214F', // Letter Like
+  '\u2500-\u257F', // Box Drawing
+  '\u2580-\u259F', // Block Elements
+  '\u25A0-\u25FF', // Geometric Shapes
+  '\u2600-\u26FF', // Miscellaneous Symbols
+  // '\u2700-\u27BF', // Dingbats
+  '\u2800-\u28FF', // Braille
+  // '\u2C60-\u2C7F', // Latin Extended-C
+];
+const chatFilter = new RegExp(`[${chatFilters.join('')}]`);
 
-// TMI.js configuration
-var defaultColors = ['rgb(255, 0, 0)',
+const defaultColors = ['rgb(255, 0, 0)',
     'rgb(0, 0, 255)',
     'rgb(0, 128, 0)',
     'rgb(178, 34, 34)',
@@ -78,19 +79,151 @@ var defaultColors = ['rgb(255, 0, 0)',
     'rgb(138, 43, 226)',
     'rgb(0, 255, 127)'],
   randomColorsChosen = {},
-  clientOptions = {
-    options: {
-      debug: false
-    },
-    connection: {
-      reconnect: true,
-      secure: true
-    },
-    channels: channels
+  useColor = true;
+
+let client;
+
+client = new tmi.client({
+  connection: {
+    reconnect: true,
+    secure: true
   },
-  client = new tmi.client(clientOptions);
+  channels: [getUrlParameter('username')]
+});
 
+addListeners();
+client.connect();
 
+/**
+ * Adds a couple of TMI listeners that we actually use.
+ */
+function addListeners() {
+  client.on('connecting', () => {
+    showAdminMessage({
+      message: 'Connecting to Twitch IRC',
+      attribs: { subtype: 'connecting' }
+    });
+    removeAdminChatLine({ subtype: 'disconnected' });
+  });
+
+  client.on('connected', () => {
+    getBTTVEmotes();
+    getBadges()
+      .then(badges => twitchBadgeCache.data.global = badges);
+    showAdminMessage({
+      message: 'Connected to Twitch IRC',
+      attribs: { subtype: 'connected' },
+      timeout: 5000
+    });
+    removeAdminChatLine({ subtype: 'connecting' });
+    removeAdminChatLine({ subtype: 'disconnected' });
+  });
+
+  client.on('disconnected', () => {
+    twitchBadgeCache.data = { global: {} };
+    bttvEmoteCache.data = { global: [] };
+    showAdminMessage({
+      message: 'Disconnected from Twitch IRC',
+      attribs: { subtype: 'disconnected' },
+      timeout: 5000
+    });
+    removeAdminChatLine({ subtype: 'connecting' });
+    removeAdminChatLine({ subtype: 'connected' });
+  });
+
+  function handleMessage(channel, userstate, message, fromSelf) {
+    if (chatFilter.test(message)) {
+      testing && console.log(message);
+      return;
+    }
+
+    let chan = getChan(channel);
+    let name = userstate['display-name'] || userstate.username;
+    if (/[^\w]/g.test(name)) {
+      name += ` (${userstate.username})`;
+    }
+    userstate.name = name;
+    showMessage({ chan, type: 'chat', message, data: userstate });
+  }
+
+  client.on('message', handleMessage);
+  client.on('cheer', handleMessage);
+
+  client.on('join', (channel, username, self) => {
+    if (!self) {
+      return;
+    }
+    let chan = getChan(channel);
+    getBTTVEmotes(chan);
+    twitchNameToUser(chan)
+      .then(user => getBadges(user._id))
+      .then(badges => twitchBadgeCache.data[chan] = badges);
+    showAdminMessage({
+      message: `Joined #${chan}`,
+      timeout: 5000
+    });
+  });
+
+  client.on('part', (channel, username, self) => {
+    if (!self) {
+      return;
+    }
+    let chan = getChan(channel);
+    delete bttvEmoteCache.data[chan];
+    showAdminMessage({
+      message: `Parted #${chan}`,
+      timeout: 5000
+    });
+  });
+
+  client.on('clearchat', channel => {
+    $('.chat__message').remove();
+  });
+
+  client.on('timeout', (channel, username) => {
+    removeChatLine({ channel, username });
+  });
+}
+
+/**
+ * Removes one or more chat lines from buffer.
+ *
+ * @param {*} params
+ */
+function removeChatLine(params = {}) {
+  if ('channel' in params) {
+    params.channel = getChan(params.channel);
+  }
+  let search = Object.keys(params)
+    .map(key => `[${key}="${params[key]}"]`)
+    .join('');
+  chatEle.querySelectorAll(search)
+    .forEach(n => chatEle.removeChild(n));
+}
+
+/**
+ * Removes one or more admin chat lines from buffer.
+ *
+ * @param {*} params
+ */
+function removeAdminChatLine(params = {}) {
+  params.type = 'admin';
+  removeChatLine(params);
+}
+
+/**
+ * Writes an admin chat line to buffer.
+ *
+ * @param {*} opts
+ */
+function showAdminMessage(opts) {
+  opts.type = 'admin';
+  if ('attribs' in opts === false) {
+    opts.attribs = {};
+  }
+  opts.attribs.type = 'admin';
+  return showMessage(opts);
+}
 
 /**
  * Removes leading IRC channel pound symbol (#)
@@ -98,448 +231,290 @@ var defaultColors = ['rgb(255, 0, 0)',
  * @param {string} channel Channel name
  * @return {string} Channel name stripped of leading #
  */
-function dehash(channel) {
+function getChan(channel = '') {
   return channel.replace(/^#/, '');
 }
 
 /**
- * Changes first character of parameter n to uppercase.
+ * Writes a chat line to buffer.
  *
- * @param {string} n String to capitalize
- * @return {string} String with first character in uppercase
+ * @param {*} param0
  */
-function capitalize(n) {
-  return n[0].toUpperCase() +  n.substr(1);
-}
-
-/**
- * Parsing special characters to HTML entities.
- *
- * @param {string} html Some HTML to process
- * @return {string} HTML with special characters escaped.
- */
-function htmlEntities(html) {
-  function it() {
-    return html.map(function(n, i, arr) {
-      if (n.length == 1) {
-        return n.replace(/[\u00A0-\u9999<>&]/gim, function(i) {
-          return '&#' + i.charCodeAt(0) + ';';
-        });
-      }
-      return n;
-    });
-  }
-
-  var isArray = Array.isArray(html);
-  if (!isArray) {
-    html = html.split('');
-  }
-  html = it(html);
-  if (!isArray) html = html.join('');
-  return html;
-}
-
-/**
- * Parse cleartext to corresponding Twitch emote.
- *
- * @param {string} text Some text to parse
- * @param {Object} emotes Part of the Twitch userstate object that contains the
- *                        emotes 'owned' by that user.
- * @param {string} channel
- * @return {string} Text with emotes parsed as image elements
- */
-function formatEmotes(text, emotes, channel) {
-  emotes = _.extend(emotes || {}, do_merge(bttvEmotes.emoteCodeList.map(function(n) {
-    var indices = getIndicesOf(n, text, true),
-      indMap = indices.map(function(m) {
-        return [m, m + n.length - 1].join('-'); // Create indices
-      });
-    var obj = {};
-    obj[n] = indMap;
-    return indMap.lenth === 0 ? null : obj;
-  })));
-
-  var splitText = text.split(''); // Separate into characters
-
-  for (var i in emotes) {
-    var e = emotes[i]; // An emote
-
-    for (var j in e) {
-      var mote = e[j]; // Indices of this emote's instance
-
-      // Make sure we're only getting the indices and not array methods, etc.
-      if (typeof mote == 'string') {
-        mote = mote.split('-'); // Split indices
-        mote = [parseInt(mote[0]), parseInt(mote[1])]; // Parse to integers
-        var length = mote[1] - mote[0], // Get emote length
-          emote = text.substr(mote[0], length + 1), // Get emote text
-          empty = Array.apply(null, new Array(length + 1)).map(function() {
-            return '';
-          });
-
-        // If it's a BTTV emote that is allowed to be used, this will still be
-        // true, otherwise true for Twitch emotes
-        var permToReplace = true,
-          options = { // Emote image options (Twitch by default)
-            template: twitchEmotes.urlTemplate, // Use this URL template
-            id: i, // Use this image ID
-            image: twitchEmotes.scales[emoteScale] // Image scale
-          };
-
-        if (bttvEmotes.emoteCodeList.indexOf(emote) > -1) { // Set BTTV options
-          var bttvEmote = _.findWhere(bttvEmotes.emotes, { code: emote });
-          // Restricted to a channel, but not this oen
-          if (bttvEmote.restrictions.channels.length > 0 && bttvEmote.restrictions.channels.indexOf(channel.replace(/^#/, '')) == -1) {
-            permToReplace = false;
-          }
-          options.template = bttvEmotes.urlTemplate;
-          options.id = bttvEmote.id;
-          options.image = bttvEmotes.scales[emoteScale];
-        }
-
-        if (permToReplace || bttvEmotes.allowEmotesAnyChannel) {
-          var html = '<img class=\'emoticon\' emote=\'' + emote + '\' src=\'' + options.template.replace('{{id}}', options.id).replace('{{image}}', options.image) + '\'>';
-
-          // Replace emote indices with empty spaces.
-          splitText = splitText.slice(0, mote[0]).concat(empty).concat(splitText.slice(mote[1] + 1, splitText.length));
-
-          // Insert emote HTML
-          splitText.splice(mote[0], 1, html);
-        }
-      }
-    }
-  }
-  return htmlEntities(splitText).join('');
-}
-
-/**
- *
- * @param {*} data
- * @param {*} channel
- */
-function mergeBTTVEmotes(data, channel) {
-  bttvEmotes.emotes = bttvEmotes.emotes.concat(data.emotes.map(function(n) {
-    if (!_.has(n, 'restrictions')) {
-      n.restrictions = {
-        channels: [],
-        games: []
-      };
-    }
-    if (n.restrictions.channels.indexOf(channel) == -1) {
-      n.restrictions.channels.push(channel);
-    }
-    return n;
-  }));
-
-  bttvEmotes.bots = bttvEmotes.bots.concat(data.bots.map(function(n) {
-    return {
-      name: n,
-      channel: channel
-    };
-  }));
-}
-
-var asyncCalls = [get('https://api.betterttv.net/2/emotes', {}, { Accept: 'application/json' }, 'GET', function(data) {
-  bttvEmotes.emotes = bttvEmotes.emotes.concat(data.emotes.map(function(n) {
-    n.global = true;
-    return n;
-  }));
-  bttvEmotes.subEmotesCodeList = _.chain(bttvEmotes.emotes).where({ global: true }).reject(function(n) {
-    return _.isNull(n.channel);
-  }).pluck('code').value();
-}, false)];
-
-/**
- *
- * @param {*} channel
- */
-function addAsyncCall(channel) {
-  asyncCalls.push(get('https://api.betterttv.net/2/channels/' + dehash(channel), {}, { Accept: 'application/json'}, 'GET', function(data) {
-    mergeBTTVEmotes(data, channel);
-  }), false);
-}
-
-/**
- * Checks the Twitch userstate object to determine badges to aassociate with
- * that user.
- *
- * @param {string} chan
- * @param {string} user
- * @param {boolean} isBot Whether username is registered with BTTV as a channel
- *                        bot.
- * @return {string} CSS classes with associated badge names.
- */
-function badges(chan, user, isBot) {
-  function createBadge(name) {
-    var badge = document.createElement('div');
-    badge.className = 'chat-badge-' + name;
-    return badge;
-  }
-
-  var chatBadges = document.createElement('span');
-  chatBadges.className = 'chat-badges';
-
-  if (!isBot) {
-    if (user.username == chan) {
-      chatBadges.appendChild(createBadge('broadcaster'));
-    }
-    if (user['user-type']) {
-      chatBadges.appendChild(createBadge(user['user-type']));
-    }
-    if (user.turbo) {
-      chatBadges.appendChild(createBadge('turbo'));
-    }
-  } else {
-    chatBadges.appendChild(createBadge('bot'));
-  }
-
-  return chatBadges;
-}
-
-
-
-/**
- * Application logic for chat messages (PRIVMSG, ACTION, etc.) Takes an IRC
- * message from TMI.js and prints to a HTML div object structure to document.
- *
- * @param {*} channel
- * @param {*} user
- * @param {*} message
- * @param {*} self
- */
-function handleChat(channel, user, message, self) {
-  var chan = dehash(channel),
-    name = user.username,
-    chatLine = document.createElement('div'),
-    chatChannel = document.createElement('span'),
-    chatName = document.createElement('span'),
-    chatColon = document.createElement('span'),
-    chatMessage = document.createElement('span');
-
-  var color = useColor ? user.color : 'inherit';
+function showMessage({ chan, type, message = '', data = {}, timeout = timeToShowChat, attribs = {} } = {}) {
+  var color = useColor ? data.color : 'inherit';
 
   // Set a colour for the user.
   if (color === null) {
     if (!randomColorsChosen.hasOwnProperty(chan)) {
       randomColorsChosen[chan] = {};
     }
-    if (randomColorsChosen[chan].hasOwnProperty(name)) {
-      color = randomColorsChosen[chan][name];
-    }
-    else {
-      color = defaultColors[Math.floor(Math.random() * defaultColors.length)];
-      randomColorsChosen[chan][name] = color;
-    }
-  }
-
-  chatLine.className = 'chat-line';
-  chatLine.dataset.username = name;
-  chatLine.dataset.channel = channel;
-
-  // Handle ACTION messages, i.e. the /me command.
-  if (user['message-type'] == 'action') {
-    chatLine.className += ' chat-action';
-  }
-
-  chatChannel.className = 'chat-channel';
-  chatChannel.innerHTML = chan;
-
-  chatName.className = 'chat-name';
-  chatName.style.color = color;
-  chatName.innerHTML = user['display-name'] || name;
-
-  chatColon.className = 'chat-colon';
-
-  chatMessage.className = 'chat-message';
-
-  chatMessage.style.color = color;
-  chatMessage.innerHTML = linkify(showEmotes ? formatEmotes(message, user.emotes, channel)
-    : htmlEntities(message));
-
-  if (client.opts.channels.length > 1 && showChannel) {
-    chatLine.appendChild(chatChannel);
-  }
-  if(showBadges) chatLine.appendChild(badges(chan, user, self));
-  chatLine.appendChild(chatName);
-  chatLine.appendChild(chatColon);
-  chatLine.appendChild(chatMessage);
-
-  // This really needs to be done in a better way but for now this is how the
-  // relay bot is ignored.
-  if (user.username == 'lutrabot') {
-    return;
-  } else {
-    if (timeToShowChat === '0') {
-      $('<div class=\'chatmessage twitch ' +  user.username + '\'>'
-        + chatLine.outerHTML +
-        '</div>').appendTo('.chat');
+    if (randomColorsChosen[chan].hasOwnProperty(data.name)) {
+      color = randomColorsChosen[chan][data.name];
     } else {
-      $('<div class=\'chatmessage twitch ' +  user.username + '\'>'
-        + chatLine.outerHTML +
-        '</div>').appendTo('.chat').hide().fadeIn('fast').delay(timeToShowChat)
-        .fadeOut('fast', function() {
-          $(this).remove();
-        });
+      color = defaultColors[Math.floor(Math.random() * defaultColors.length)];
+      randomColorsChosen[chan][data.name] = color;
     }
   }
 
-  if (typeof fadeDelay == 'number') {
-    setTimeout(function() { //DevSkim: reviewed DS172411
-      chatLine.dataset.faded = '';
-    }, fadeDelay);
-  }
-}
+  let chatLine_ = document.createElement('div');
+  let chatLine = document.createElement('div');
+  chatLine_.classList.add('chat__message', 'chat__message--twitch');
+  chatLine.classList.add('chat__message__inner');
+  chatLine_.appendChild(chatLine);
 
-/**
- * Application logic for server notices.
- *
- * @param {string} information
- * @param {string} noticeFadeDelay
- * @param {string} level
- * @param {string} additionalClasses
- * @return {string} HTML div element containing server notice
- */
-function chatNotice(information, noticeFadeDelay, level, additionalClasses) {
-  var ele = document.createElement('div');
-
-  ele.className = 'chat-line chat-notice';
-  ele.innerHTML = information;
-
-  if (additionalClasses !== undefined) {
-    if (Array.isArray(additionalClasses)) {
-      additionalClasses = additionalClasses.join(' ');
-    }
-    ele.className += ' ' + additionalClasses;
+  if (chan) {
+    chatLine_.setAttribute('channel', chan);
   }
 
-  if (typeof level == 'number' && level != 0) {
-    ele.dataset.level = level;
-  }
-
-  $('<div class=\'chatmessage\'>'
-      + ele.outerHTML +
-    '</div>').appendTo('.chat').hide().fadeIn('fast').delay(5000)
-    .fadeOut('fast', function() {
-      $(this).remove();
+  Object.keys(attribs)
+    .forEach(key => {
+      chatLine_.setAttribute(key, attribs[key]);
     });
 
-  if (typeof noticeFadeDelay == 'number') {
-    setTimeout(function() { //DevSkim: reviewed DS172411
-      ele.dataset.faded = '';
-    }, noticeFadeDelay || 500);
+  if (type === 'chat') {
+    'id' in data && chatLine_.setAttribute('id', data.id);
+    'user-id' in data && chatLine_.setAttribute('userid', data['user-id']);
+    'room-id' in data && chatLine_.setAttribute('channelid', data['room-id']);
+    'username' in data && chatLine_.setAttribute('username', data.username);
+    'message-type' in data && chatLine_.classList.add('chat__message--' + data['message-type']);
+
+    if (data.username == 'lutrabot') {
+      return;
+    }
+
+    let badgeEle = document.createElement('span');
+    if ('badges' in data && data.badges !== null) {
+      badgeEle.classList.add('badges');
+      let badgeGroup = Object.assign({}, twitchBadgeCache.data.global, twitchBadgeCache.data[chan] || {});
+      let badges = Object.keys(data.badges)
+        .forEach(type => {
+          let version = data.badges[type];
+          let group = badgeGroup[type];
+          if (group && version in group.versions) {
+            let url = group.versions[version].image_url_1x;
+            let ele = document.createElement('img');
+            ele.setAttribute('src', url);
+            ele.setAttribute('data-badgeType', type);
+            ele.setAttribute('alt', type);
+            ele.classList.add('badges__badge', 'badges__badge--twitch');
+            badgeEle.appendChild(ele);
+          }
+        }, []);
+    }
+
+    let nameEle = document.createElement('span');
+    nameEle.classList.add('chat__message__username');
+    nameEle.style.color = color;
+    nameEle.innerText = data.name;
+
+    let messageEle = document.createElement('span');
+    messageEle.classList.add('chat__message__message');
+
+    let finalMessage = handleEmotes(chan, data.emotes || {}, message);
+    addEmoteDOM(messageEle, finalMessage);
+
+    chatLine.appendChild(badgeEle);
+    chatLine.appendChild(nameEle);
+    chatLine.appendChild(messageEle);
+  } else if (type === 'admin') {
+    chatLine_.classList.add('chat__message--admin');
+
+    let messageEle = document.createElement('span');
+    messageEle.classList.add('chat__message__message');
+    messageEle.innerText = message;
+
+    chatLine.appendChild(messageEle);
   }
 
-  return ele;
-}
-
-var recentTimeouts = {};
-
-/**
- * Application logic for timeout events, purges all messages from that user
- * from the document.
- *
- * @param {string} channel
- * @param {string} username
- */
-function timeout(channel, username) {
-  if(!doTimeouts) return false;
-
-  if (!recentTimeouts.hasOwnProperty(channel)) {
-    recentTimeouts[channel] = {};
-  }
-  if (!recentTimeouts[channel].hasOwnProperty(username) || recentTimeouts[channel][username] + 1000*10 < +new Date) {
-    recentTimeouts[channel][username] = +new Date;
-    chatNotice(capitalize(username) + ' was timed-out in ' + capitalize(dehash(channel)), 1000, 1, 'chat-delete-timeout');
-  }
-
-  $('.' + username).remove();
-}
-
-/**
- * Application logic for a CLEARCHAT event.
- *
- * @param {*} channel
- * @param {*} username
- */
-function clearChat(channel, username) {
-  if (!doChatClears) return false;
-
-  $('.chatmessage').remove();
-  chatNotice('Chat was cleared in ' + capitalize(dehash(channel)), 1000, 1, 'chat-delete-clear');
-}
-
-/**
- * Application logic for host and unhost events.
- *
- * @param {*} channel
- * @param {*} target
- * @param {*} viewers
- * @param {*} unhost
- */
-function hosting(channel, target, viewers, unhost) {
-  if(!showHosting) return false;
-  if(viewers == '-') viewers = 0;
-  var chan = dehash(channel);
-  chan = capitalize(chan);
-
-  if (!unhost) {
-    var targ = capitalize(target);
-    chatNotice(chan + ' is now hosting ' + targ + ' for ' + viewers + ' viewer' + (viewers !== 1 ? 's' : '') + '.', null, null, 'chat-hosting-yes');
+  if (timeToShowChat === '0') {
+    $(chatLine_.outerHTML).appendTo('.chat');
   } else {
-    chatNotice(chan + ' is no longer hosting.', null, null, 'chat-hosting-no');
+    $(chatLine_.outerHTML).appendTo('.chat').hide().fadeIn('fast').delay(timeToShowChat).fadeOut('fast', function() {
+      $(this).remove();
+    });
+  }
+
+  setTimeout(() => chatLine_.classList.add('visible'), 100); //DevSkim: reviewed DS172411 on 2018-08-24 by Patrick Godschalk <patrick@kernelpanics.nl>
+
+  if (timeout) {
+    setTimeout(() => { //DevSkim: reviewed DS172411 on 2018-08-24 by Patrick Godschalk <patrick@kernelpanics.nl>
+      if (chatLine_.parentElement) {
+        chatLine_.classList.remove('visible');
+        setTimeout(() => chatEle.removeChild(chatLine_), 1000);
+      }
+    }, timeout);
   }
 }
 
-client.addListener('message', handleChat);
-client.addListener('timeout', timeout);
-client.addListener('clearchat', clearChat);
-client.addListener('hosting', hosting);
-client.addListener('unhost', function(channel, viewers) {
-  hosting(channel, null, viewers, true);
-});
-client.addListener('connecting', function(address, port) {
-  if(showConnectionNotices) chatNotice('Connecting', 1000, -4, 'chat-connection-good-connecting');
-});
-client.addListener('logon', function() {
-  if(showConnectionNotices) chatNotice('Authenticating', 1000, -3, 'chat-connection-good-logon');
-});
-client.addListener('connectfail', function() {
-  if(showConnectionNotices) chatNotice('Connection failed', 1000, 3, 'chat-connection-bad-fail');
-});
-client.addListener('connected', function(address, port) {
-  if(showConnectionNotices) chatNotice('Connected', 1000, -2, 'chat-connection-good-connected');
-  joinAccounced = [];
-});
-client.addListener('disconnected', function(reason) {
-  if(showConnectionNotices) chatNotice('Disconnected: ' + (reason || ''), 3000, 2, 'chat-connection-bad-disconnected');
-});
-client.addListener('reconnect', function() {
-  if(showConnectionNotices) chatNotice('Reconnected', 1000, 'chat-connection-good-reconnect');
-});
-client.addListener('join', function(channel, username) {
-  if (username == client.getUsername()) {
-    if(showConnectionNotices) chatNotice('Joined ' + capitalize(dehash(channel)), 1000, -1, 'chat-room-join');
-    joinAccounced.push(channel);
+/**
+ * Parse cleartext to corresponding Twitch or BTTV emote.
+ *
+ * @param {*} channel
+ * @param {*} emotes
+ * @param {*} message
+ */
+function handleEmotes(channel, emotes, message) {
+  // let messageParts = message.split(' ');
+  let bttvEmotes = bttvEmoteCache.data.global.slice(0);
+  if (channel in bttvEmoteCache.data) {
+    bttvEmotes = bttvEmotes.concat(bttvEmoteCache.data[channel]);
   }
-});
-client.addListener('part', function(channel, username) {
-  var index = joinAccounced.indexOf(channel);
-  if (index > -1) {
-    if(showConnectionNotices) chatNotice('Parted ' + capitalize(dehash(channel)), 1000, -1, 'chat-room-part');
-    joinAccounced.splice(joinAccounced.indexOf(channel), 1);
-  }
-});
-client.addListener('crash', function() {
-  chatNotice('Crashed', 10000, 4, 'chat-crash');
-});
-
-$(document).ready(function(e) {
-  for (var i in channels) {
-    addAsyncCall(channels[i]);
-  }
-
-  $.when.apply({}, asyncCalls).always(function() {
-    bttvEmotes.emoteCodeList = _.pluck(bttvEmotes.emotes, 'code');
-    client.connect();
+  let twitchEmoteKeys = Object.keys(emotes);
+  let allEmotes = twitchEmoteKeys.reduce((p, id) => {
+    let emoteData = emotes[id].map(n => {
+      let [ a, b ] = n.split('-');
+      let start = +a;
+      let end = +b + 1;
+      return {
+        start,
+        end,
+        id,
+        code: message.slice(start, end),
+        type: [ 'twitch', 'emote' ]
+      };
+    });
+    return p.concat(emoteData);
+  }, []);
+  bttvEmotes.forEach(({ code, id, type, imageType }) => {
+    let hasEmote = message.indexOf(code);
+    if (hasEmote === -1) {
+      return;
+    }
+    for (let start = message.indexOf(code); start > -1; start = message.indexOf(code, start + 1)) {
+      let end = start + code.length;
+      allEmotes.push({ start, end, id, code, type });
+    }
   });
-});
+  let seen = [];
+  allEmotes = allEmotes.sort((a, b) => a.start - b.start)
+    .filter(({ start, end }) => {
+      if (seen.length && !seen.every(n => start > n.end)) {
+        return false;
+      }
+      seen.push({ start, end });
+      return true;
+    });
+  if (allEmotes.length) {
+    let finalMessage = [ message.slice(0, allEmotes[0].start) ];
+    allEmotes.forEach((n, i) => {
+      let p = Object.assign({}, n, { i });
+      let { end } = p;
+      finalMessage.push(p);
+      if (i === allEmotes.length - 1) {
+        finalMessage.push(message.slice(end));
+      }
+      else {
+        finalMessage.push(message.slice(end, allEmotes[i + 1].start));
+      }
+      finalMessage = finalMessage.filter(n => n);
+    });
+    return finalMessage;
+  }
+  return [ message ];
+}
+
+/**
+ * Writes a Twitch or BTTV emote to DOM.
+ *
+ * @param {*} ele
+ * @param {*} data
+ */
+function addEmoteDOM(ele, data) {
+  data.forEach(n => {
+    let out = null;
+    if (typeof n === 'string') {
+      out = document.createTextNode(n);
+    } else {
+      let { type: [ type, subtype ], code } = n;
+      if (type === 'twitch') {
+        if (subtype === 'emote') {
+          out = document.createElement('img');
+          out.classList.add('emoticon', 'emoticon--twitch');
+          out.setAttribute('src', `https://static-cdn.jtvnw.net/emoticons/v1/${n.id}/1.0`);
+          out.setAttribute('alt', code);
+        }
+      } else if (type === 'bttv') {
+        out = document.createElement('img');
+        let url = bttvEmoteCache.urlTemplate;
+        url = url.replace('{{id}}', n.id).replace('{{image}}', '1x');
+        out.classList.add('emoticon', 'emoticon--twitch');
+        out.setAttribute('src', 'https:' + url);
+        out.setAttribute('alt', code);
+      }
+    }
+
+    if (out) {
+      ele.appendChild(out);
+    }
+  });
+  twemoji.parse(ele);
+}
+
+function formQuerystring(qs = {}) {
+  return Object.keys(qs)
+    .map(key => `${key}=${qs[key]}`)
+    .join('&');
+}
+
+function request({ base = '', endpoint = '', qs, headers = {}, method = 'get' }) {
+  let opts = {
+    method,
+    headers: new Headers(headers)
+  };
+  return fetch(base + endpoint + '?' + formQuerystring(qs), opts)
+    .then(res => res.json());
+}
+
+function kraken(opts) {
+  let defaults = {
+    base: krakenBase,
+    headers: {
+      'Client-ID': krakenClientID,
+      Accept: 'application/vnd.twitchtv.v5+json'
+    }
+  };
+  return request(Object.assign(defaults, opts));
+}
+
+function twitchNameToUser(username) {
+  return kraken({
+    endpoint: 'users',
+    qs: { login: username }
+  }).then(({ users }) => users[0] || null);
+}
+
+function getBadges(channel) {
+  return kraken({
+    base: 'https://badges.twitch.tv/v1/badges/',
+    endpoint: (channel ? `channels/${channel}` : 'global') + '/display',
+    qs: { language: 'en' }
+  }).then(data => data.badge_sets);
+}
+
+function getBTTVEmotes(channel) {
+  let endpoint = 'emotes';
+  let global = true;
+  if (channel) {
+    endpoint = 'channels/' + channel;
+    global = false;
+  }
+  return request({
+    base: 'https://api.betterttv.net/2/',
+    endpoint
+  }).then(({ emotes, status, urlTemplate }) => {
+    if(status === 404) return;
+    bttvEmoteCache.urlTemplate = urlTemplate;
+    emotes.forEach(n => {
+      n.global = global;
+      n.type = [ 'bttv', 'emote' ];
+      if (!global) {
+        if (channel in bttvEmoteCache.data === false) {
+          bttvEmoteCache.data[channel] = [];
+        }
+        bttvEmoteCache.data[channel].push(n);
+      } else {
+        bttvEmoteCache.data.global.push(n);
+      }
+    });
+  });
+}

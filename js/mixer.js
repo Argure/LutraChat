@@ -60,10 +60,6 @@ $.ajax({
   }
 });
 
-// General settings
-var chatTime = getUrlParameter('timer');
-timeToShowChat = chatTime; // in milliseconds
-
 /**
  * Connect to Mixer websocket
  *
@@ -85,11 +81,15 @@ function mixerSocketConnect(endpoints) {
         id: 1
       });
       ws.send(connector);
-      console.log('Connection Opened...');
+      console.log('Connection opened...');
 
-      $('<div class=\'chatmessage\' id=\'1\'>Mixer chat connection established to ' + username + '.</div>').appendTo('.chat').hide().fadeIn('fast').delay(5000).fadeOut('fast', function() {
-        $(this).remove();
-      });
+      if (timeToShowChat === '0') {
+        $('<div class=\'chat__message chat__message--mixer\' id=\'1\'>Mixer chat connection established to ' + username + '.</div>').appendTo('.chat');
+      } else {
+        $('<div class=\'chat__message chat__message--mixer\' id=\'1\'>Mixer chat connection established to ' + username + '.</div>').appendTo('.chat').hide().fadeIn('fast').delay(timeToShowChat).fadeOut('fast', function() {
+          $(this).remove();
+        });
+      }
 
       // Error handling and keepalive
       setInterval(function() {
@@ -97,13 +97,13 @@ function mixerSocketConnect(endpoints) {
       }, 10000);
     };
 
-    ws.onmessage = function (evt) {
+    ws.onmessage = function(evt) {
       chat(evt);
       // Debug - Log all chat events.
       //console.log(evt);
     };
 
-    ws.onclose = function(){
+    ws.onclose = function() {
       // Websocket is closed
       console.log('Connection is closed...');
     };
@@ -120,7 +120,7 @@ function mixerSocketConnect(endpoints) {
  *
  * @param {Object} evt JSON object from Mixer websocket
  */
-function chat(evt){
+function chat(evt) {
   var evtString = $.parseJSON(evt.data);
   var eventType = evtString.event;
   var eventMessage = evtString.data;
@@ -133,7 +133,7 @@ function chat(evt){
     var messageID = eventMessage.id;
     var completeMessage = '';
     var action = '';
-    if(eventMessage.message.meta.me) action = 'action';
+    if(eventMessage.message.meta.me) action = 'chat__message--action';
 
     $.each(usermessage, function() {
       var type = this.type;
@@ -150,9 +150,9 @@ function chat(evt){
         var emoticonCoordX = this.coords.x;
         var emoticonCoordY = this.coords.y;
         if (emoticonSource == 'builtin') {
-          completeMessage += '<div class="emoticon" style="background-image: url(https://Mixer.com/_latest/emoticons/' + emoticonPack + '.png); background-position: -' + emoticonCoordX + 'px -' + emoticonCoordY + 'px; height: 24px; width: 24px; display: inline-block;"></div>';
+          completeMessage += '<div class="emoticon emoticon--mixer" style="background-image: url(https://Mixer.com/_latest/emoticons/' + emoticonPack + '.png); background-position: -' + emoticonCoordX + 'px -' + emoticonCoordY + 'px; height: 24px; width: 24px; display: inline-block;"></div>';
         } else if (emoticonSource == 'external') {
-          completeMessage += '<div class="emoticon" style="background-image: url(' + emoticonPack + '); background-position: -' + emoticonCoordX + 'px -' + emoticonCoordY+'px; height: 24px; width: 24px; display: inline-block;"></div>';
+          completeMessage += '<div class="emoticon emoticon--mixer" style="background-image: url(' + emoticonPack + '); background-position: -' + emoticonCoordX + 'px -' + emoticonCoordY+'px; height: 24px; width: 24px; display: inline-block;"></div>';
         }
       } else if (type == 'link') {
         var chatLinkOrig = this.text;
@@ -166,16 +166,13 @@ function chat(evt){
 
     // Place the completed chat message into the chat area.
     // Fade message in, wait X time, fade out, then remove.
-
-    // This really needs to be done in a better way but for now this is how the
-    // relay bot is ignored.
-    if (username == 'superlisa') {
+    if (completeMessage.endsWith('[T]')) {
       return;
     } else {
       if (timeToShowChat === '0') {
-        $('<div class=\'chatmessage mixer ' + eventMessage.user_id + ' ' + action + '\' id=\'' + messageID + '\'><div class=\'chatusername ' + userroles + '\'>' + username + ' <div class=\'badge\'><img src=' + subIcon + '></div></div> ' + linkify(completeMessage) + '</div>').appendTo('.chat');
+        $('<div class=\'chat__message chat__message--mixer ' + eventMessage.user_id + ' ' + action + '\' id=\'' + messageID + '\'><div class=\'chat__message__username chat__message__username--' + userroles + '\'>' + username + ' <div class=\'badges\'><img class=\'badges__badge--mixer\' src=' + subIcon + '></div></div> ' + completeMessage + '</div>').appendTo('.chat');
       } else {
-        $('<div class=\'chatmessage mixer ' + eventMessage.user_id + ' ' + action + '\' id=\'' + messageID + '\'><div class=\'chatusername ' + userroles + '\'>' + username + ' <div class=\'badge\'><img src=' + subIcon + '></div></div> ' + linkify(completeMessage) + '</div>').appendTo('.chat').hide().fadeIn('fast').delay(timeToShowChat).fadeOut('fast', function() {
+        $('<div class=\'chat__message chat__message--mixer ' + eventMessage.user_id + ' ' + action + '\' id=\'' + messageID + '\'><div class=\'chat__message__username chat__message__username--' + userroles + '\'>' + username + ' <div class=\'badges\'><img class=\'badges__badge--mixer\' src=' + subIcon + '></div></div> ' + completeMessage + '</div>').appendTo('.chat').hide().fadeIn('fast').delay(timeToShowChat).fadeOut('fast', function() {
           $(this).remove();
         });
       }
@@ -183,7 +180,7 @@ function chat(evt){
 
   } else if (eventType == 'ClearMessages') {
     // If someone clears chat, then clear all messages on screen.
-    $('.chatmessage').remove();
+    $('.chat__message').remove();
   } else if (eventType == 'DeleteMessage') {
     // If someone deletes a message, delete it from screen.
     $('#' + eventMessage.id).remove();
@@ -202,7 +199,7 @@ function errorHandle(ws) {
 
   if (wsState !== 1) {
     // Connection not open
-    console.log('Ready state is '+wsState);
+    console.log('Ready state is ' + wsState);
   } else {
     // Connection open, send keepalive.
     ws.send('{"type": "method", "method": "ping", "arguments": [], "id": 12}');

@@ -93,6 +93,12 @@ module.exports = function(grunt) {
             ]
           },
           {
+            cwd: 'node_modules/twemoji/2',
+            dest: 'app/js',
+            expand: true,
+            src: ['twemoji.min.js']
+          },
+          {
             cwd: 'node_modules/underscore/',
             dest: 'app/js',
             expand: true,
@@ -158,7 +164,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-sass');
   grunt.loadNpmTasks('grunt-postcss');
   grunt.loadNpmTasks('grunt-contrib-cssmin');
-  grunt.loadNpmTasks('grunt-contrib-uglify');
+  grunt.loadNpmTasks('grunt-contrib-uglify-es');
   grunt.loadNpmTasks('grunt-jsdoc');
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-image-resize');

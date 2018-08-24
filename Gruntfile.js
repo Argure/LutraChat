@@ -17,7 +17,10 @@ module.exports = function(grunt) {
         outputStyle: 'expanded'
       },
       dist: {
-        files: { 'app/css/lutrachat.css': 'scss/lutrachat.scss' }
+        files: {
+          'app/css/lutrachat.css': 'scss/lutrachat.scss',
+          'app/css/wizard.css': 'scss/wizard.scss'
+        }
       }
     },
 
@@ -60,7 +63,8 @@ module.exports = function(grunt) {
           'app/js/helpers.min.js': 'js/helpers.js',
           'app/js/mixer.min.js': 'js/mixer.js',
           'app/js/twitch.min.js': 'js/twitch.js',
-          'app/serviceworker.js': 'js/serviceworker.js'
+          'app/serviceworker.js': 'js/serviceworker.js',
+          'app/js/wizard.min.js': 'js/wizard.js'
         }
       }
     },

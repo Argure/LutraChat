@@ -1,0 +1,57 @@
+.pure-steps {
+  strong {
+    color: hsl(8, 52%, 79%)
+  }
+
+  .pure-steps_group {
+    background-image: linear-gradient(-120deg, hsl(7, 10%, 48%) 0, hsl(7, 17%, 28%) 100%, hsl(0, 100%, 50%) 200%);
+
+    &-triggers::before {
+      background-color: hsla(8, 52%, 79%, 0.4);
+    }
+
+    .pure-steps_group-step {
+      .pure-steps_group-step_item input {
+        background-image: linear-gradient(0deg, hsla(0, 0%, 0%, 0) 0, hsl(0, 0%, 90%) 1px), linear-gradient(0deg, hsla(0, 0%, 0%, 0) 0, hsl(8, 52%, 79%) 1px);
+
+        &:focus + label {
+          color: hsl(8, 52%, 79%);
+        }
+      }
+
+      &:last-child p {
+        text-align: left;
+      }
+    }
+  }
+
+  .pure-steps_radio:nth-child(3):checked ~ .pure-steps_group .pure-steps_group-step .pure-steps_preload {
+    margin-bottom: 60px;
+  }
+}
+
+code {
+  display: block;
+  padding: 3px;
+  margin: {
+    right: 10px;
+    top: 5px;
+    left: 10px;
+    bottom: 10px;
+  }
+  font-family: 'SF Mono', 'Menlo', 'Monaco', 'Lucida Console', 'sans-serif';
+  color: #333;
+  background-color: hsl(9, 80%, 90%);
+  border-radius: 2px;
+}
+
+a {
+  color: hsl(8, 52%, 79%);
+  text-decoration: none;
+
+  &:hover,
+  &:focus,
+  &:active {
+    color: hsl(8, 52%, 79%);
+  }
+}

@@ -100,7 +100,7 @@ function mixerSocketConnect(endpoints) {
     ws.onmessage = function(evt) {
       chat(evt);
       // Debug - Log all chat events.
-      //console.log(evt);
+      console.log(evt);
     };
 
     ws.onclose = function() {
@@ -134,6 +134,7 @@ function chat(evt) {
     var completeMessage = '';
     var action = '';
     if(eventMessage.message.meta.me) action = 'chat__message--action';
+    if(eventMessage.message.meta.is_skill) action = 'chat__message--sticker';
 
     $.each(usermessage, function() {
       var type = this.type;
@@ -161,6 +162,17 @@ function chat(evt) {
       } else if (type == 'tag') {
         var userTag = this.text;
         completeMessage += userTag;
+      } else if (type == 'image') {
+        var stickerName = this.text;
+        var stickerSource = this.url;
+        var stickerCost = eventMessage.message.meta.skill.cost;
+        var stickerCurrency;
+        if (eventMessage.message.meta.skill.currency == 'Sparks') {
+          stickerCurrency = '<img class="currency currency--sparks" src="assets/sparks.png" alt="Sparks">';
+        } else {
+          stickerCurrency = '<img class="currency currency--embers" src="https://mixer.com/_static/img/design/ui/embers/ember_20.png" alt="Embers">';
+        }
+        completeMessage += 'used sticker: <strong>' + stickerName + '</strong> (' + stickerCurrency + ' ' + stickerCost + ')<br><img src="' + stickerSource + '" alt="' + stickerName + '">';
       }
     });
 
@@ -176,6 +188,30 @@ function chat(evt) {
           $(this).remove();
         });
       }
+    }
+
+  } else if (eventType == 'SkillAttribution') {
+    var username = eventMessage.user_name;
+    var userrolesSrc = eventMessage.user_roles;
+    var userroles = userrolesSrc.toString().replace(/,/g, ' ');
+    var messageID = eventMessage.id;
+    var eventSource = eventMessage.skill.icon_url;
+    var eventName = eventMessage.skill.skill_name;
+    var eventCost = eventMessage.skill.cost;
+    var eventCurrency;
+    if (eventMessage.skill.currency == 'Sparks') {
+      eventCurrency = '<img class="currency currency--sparks" src="assets/sparks.png" alt="Sparks">';
+    } else {
+      eventCurrency = '<img class="currency currency--embers" src="https://mixer.com/_static/img/design/ui/embers/ember_20.png" alt="Embers">';
+    }
+    var completeMessage = 'used skill: <strong>' + eventName + '</strong> (' + eventCurrency + ' ' + eventCost + ')<br><img src="' + eventSource + '" alt="' + eventName + '">';
+
+    if (timeToShowChat === '0') {
+      $('<div class=\'chat__message chat__message--mixer chat__message--skill ' + eventMessage.user_id + '\' id=\'' + messageID + '\'><div class=\'chat__message__username chat__message__username--' + userroles + '\'>' + username + ' <div class=\'badges\'><img class=\'badges__badge--mixer\' src=' + subIcon + '></div></div> ' + completeMessage + '</div>').appendTo('.chat');
+    } else {
+      $('<div class=\'chat__message chat__message--mixer chat__message--skill ' + eventMessage.user_id + '\' id=\'' + messageID + '\'><div class=\'chat__message__username chat__message__username--' + userroles + '\'>' + username + ' <div class=\'badges\'><img class=\'badges__badge--mixer\' src=' + subIcon + '></div></div> ' + completeMessage + '</div>').appendTo('.chat').hide().fadeIn('fast').delay(timeToShowChat).fadeOut('fast', function() {
+        $(this).remove();
+      });
     }
 
   } else if (eventType == 'ClearMessages') {

@@ -27,6 +27,13 @@ body {
   display: inline-block;
 }
 
+.currency {
+  position: relative;
+  top: 2px;
+  max-width: 15px;
+  max-height: 15px;
+}
+
 .emoticon,
 .emoji {
   position: relative;
@@ -73,6 +80,20 @@ body {
 
 .chat__message--action {
   font-style: italic;
+}
+
+.chat__message--sticker img:not(.currency) {
+  max-width: 50px;
+  max-height: 50px;
+  margin-top: 10px;
+  margin-left: 20px;
+}
+
+.chat__message--skill img:not(.currency) {
+  width: 50px;
+  height: 50px;
+  margin-top: 10px;
+  margin-left: 20px;
 }
 
 .chat__message__inner {

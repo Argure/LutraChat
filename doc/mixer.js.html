@@ -128,7 +128,7 @@ function mixerSocketConnect(endpoints) {
     ws.onmessage = function(evt) {
       chat(evt);
       // Debug - Log all chat events.
-      //console.log(evt);
+      console.log(evt);
     };
 
     ws.onclose = function() {
@@ -162,6 +162,7 @@ function chat(evt) {
     var completeMessage = '';
     var action = '';
     if(eventMessage.message.meta.me) action = 'chat__message--action';
+    if(eventMessage.message.meta.is_skill) action = 'chat__message--sticker';
 
     $.each(usermessage, function() {
       var type = this.type;
@@ -189,6 +190,17 @@ function chat(evt) {
       } else if (type == 'tag') {
         var userTag = this.text;
         completeMessage += userTag;
+      } else if (type == 'image') {
+        var stickerName = this.text;
+        var stickerSource = this.url;
+        var stickerCost = eventMessage.message.meta.skill.cost;
+        var stickerCurrency;
+        if (eventMessage.message.meta.skill.currency == 'Sparks') {
+          stickerCurrency = '&lt;img class="currency currency--sparks" src="assets/sparks.png" alt="Sparks">';
+        } else {
+          stickerCurrency = '&lt;img class="currency currency--embers" src="https://mixer.com/_static/img/design/ui/embers/ember_20.png" alt="Embers">';
+        }
+        completeMessage += 'used sticker: &lt;strong>' + stickerName + '&lt;/strong> (' + stickerCurrency + ' ' + stickerCost + ')&lt;br>&lt;img src="' + stickerSource + '" alt="' + stickerName + '">';
       }
     });
 
@@ -204,6 +216,30 @@ function chat(evt) {
           $(this).remove();
         });
       }
+    }
+
+  } else if (eventType == 'SkillAttribution') {
+    var username = eventMessage.user_name;
+    var userrolesSrc = eventMessage.user_roles;
+    var userroles = userrolesSrc.toString().replace(/,/g, ' ');
+    var messageID = eventMessage.id;
+    var eventSource = eventMessage.skill.icon_url;
+    var eventName = eventMessage.skill.skill_name;
+    var eventCost = eventMessage.skill.cost;
+    var eventCurrency;
+    if (eventMessage.skill.currency == 'Sparks') {
+      eventCurrency = '&lt;img class="currency currency--sparks" src="assets/sparks.png" alt="Sparks">';
+    } else {
+      eventCurrency = '&lt;img class="currency currency--embers" src="https://mixer.com/_static/img/design/ui/embers/ember_20.png" alt="Embers">';
+    }
+    var completeMessage = 'used skill: &lt;strong>' + eventName + '&lt;/strong> (' + eventCurrency + ' ' + eventCost + ')&lt;br>&lt;img src="' + eventSource + '" alt="' + eventName + '">';
+
+    if (timeToShowChat === '0') {
+      $('&lt;div class=\'chat__message chat__message--mixer chat__message--skill ' + eventMessage.user_id + '\' id=\'' + messageID + '\'>&lt;div class=\'chat__message__username chat__message__username--' + userroles + '\'>' + username + ' &lt;div class=\'badges\'>&lt;img class=\'badges__badge--mixer\' src=' + subIcon + '>&lt;/div>&lt;/div> ' + completeMessage + '&lt;/div>').appendTo('.chat');
+    } else {
+      $('&lt;div class=\'chat__message chat__message--mixer chat__message--skill ' + eventMessage.user_id + '\' id=\'' + messageID + '\'>&lt;div class=\'chat__message__username chat__message__username--' + userroles + '\'>' + username + ' &lt;div class=\'badges\'>&lt;img class=\'badges__badge--mixer\' src=' + subIcon + '>&lt;/div>&lt;/div> ' + completeMessage + '&lt;/div>').appendTo('.chat').hide().fadeIn('fast').delay(timeToShowChat).fadeOut('fast', function() {
+        $(this).remove();
+      });
     }
 
   } else if (eventType == 'ClearMessages') {
@@ -227,7 +263,7 @@ function errorHandle(ws) {
 
   if (wsState !== 1) {
     // Connection not open
-    console.log('Ready state is '+wsState);
+    console.log('Ready state is ' + wsState);
   } else {
     // Connection open, send keepalive.
     ws.send('{"type": "method", "method": "ping", "arguments": [], "id": 12}');
@@ -243,13 +279,13 @@ function errorHandle(ws) {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#addListeners">addListeners</a></li><li><a href="global.html#chat">chat</a></li><li><a href="global.html#errorHandle">errorHandle</a></li><li><a href="global.html#getChan">getChan</a></li><li><a href="global.html#mixerSocketConnect">mixerSocketConnect</a></li><li><a href="global.html#removeAdminChatLine">removeAdminChatLine</a></li><li><a href="global.html#removeChatLine">removeChatLine</a></li><li><a href="global.html#setHeader">setHeader</a></li><li><a href="global.html#showAdminMessage">showAdminMessage</a></li><li><a href="global.html#showMessage">showMessage</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#addEmoteDOM">addEmoteDOM</a></li><li><a href="global.html#addListeners">addListeners</a></li><li><a href="global.html#chat">chat</a></li><li><a href="global.html#errorHandle">errorHandle</a></li><li><a href="global.html#getChan">getChan</a></li><li><a href="global.html#handleEmotes">handleEmotes</a></li><li><a href="global.html#mixerSocketConnect">mixerSocketConnect</a></li><li><a href="global.html#removeAdminChatLine">removeAdminChatLine</a></li><li><a href="global.html#removeChatLine">removeChatLine</a></li><li><a href="global.html#setHeader">setHeader</a></li><li><a href="global.html#showAdminMessage">showAdminMessage</a></li><li><a href="global.html#showMessage">showMessage</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Fri Aug 24 2018 21:06:29 GMT+0200 (Central European Summer Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Wed Jan 16 2019 19:14:16 GMT+0100 (Central European Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

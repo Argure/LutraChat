@@ -88,43 +88,26 @@ article header {
 
 .full-height {
   height: 26em;
-  -webkit-box-align: center;
-      -ms-flex-align: center;
-          align-items: center;
+  align-items: center;
 }
 
 .flexy-item {
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-orient: horizontal;
-  -webkit-box-direction: normal;
-      -ms-flex-direction: row;
-          flex-direction: row;
-  -webkit-box-pack: center;
-      -ms-flex-pack: center;
-          justify-content: center;
+  flex-direction: row;
+  justify-content: center;
   position: relative;
 }
 
 .flexy-column {
-  -webkit-box-orient: vertical;
-  -webkit-box-direction: normal;
-      -ms-flex-direction: column;
-          flex-direction: column;
+  flex-direction: column;
 }
 
 .flexy-column.reverse {
-  -webkit-box-orient: vertical;
-  -webkit-box-direction: reverse;
-      -ms-flex-direction: column-reverse;
-          flex-direction: column-reverse;
+  flex-direction: column-reverse;
 }
 
 .flexy-item_child {
-  -webkit-box-flex: 1;
-      -ms-flex: 1 0 100%;
-          flex: 1 0 100%;
+  flex: 1 0 100%;
 }
 
 .pure-steps {
@@ -144,13 +127,11 @@ article header {
   min-height: 26em;
   border-radius: .4em;
   overflow: hidden;
-  -webkit-box-shadow: 0 1.7em 5.5em -0.94em rgba(0, 0, 0, 0.3), 0 2em 3em 0.5em rgba(0, 0, 0, 0.1), 0 1.8em 2em -1.5em rgba(0, 0, 0, 0.2);
-          box-shadow: 0 1.7em 5.5em -0.94em rgba(0, 0, 0, 0.3), 0 2em 3em 0.5em rgba(0, 0, 0, 0.1), 0 1.8em 2em -1.5em rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1.7em 5.5em -0.94em rgba(0, 0, 0, 0.3), 0 2em 3em 0.5em rgba(0, 0, 0, 0.1), 0 1.8em 2em -1.5em rgba(0, 0, 0, 0.2);
   background-image: linear-gradient(-120deg, #26e289 0%, #1a5fa2 100%, #ff0000 200%);
   background-position: 0 0;
   background-size: 300%;
   will-change: background, box-shadow;
-  -webkit-transition: all 0.3s ease-out;
   transition: all 0.3s ease-out;
 }
 
@@ -163,7 +144,6 @@ article header {
   transform: translate(100%);
   opacity: 0;
   will-change: transform, opacity;
-  -webkit-transition: all 0.6s ease-in-out;
   transition: all 0.6s ease-in-out;
   text-align: left;
 }
@@ -192,8 +172,7 @@ article header {
 
 .pure-steps .pure-steps_group .pure-steps_group-step .pure-steps_group-step_item input {
   font-size: 1em;
-  -webkit-box-sizing: border-box;
-          box-sizing: border-box;
+  box-sizing: border-box;
   width: 100%;
   border: 0;
   line-height: 1.5em;
@@ -203,7 +182,6 @@ article header {
   background-repeat: no-repeat;
   outline: none;
   will-change: background;
-  -webkit-transition: background 0.3s ease-in-out;
   transition: background 0.3s ease-in-out;
   color: white;
   font-family: "Open Sans", sans-serif;
@@ -251,7 +229,6 @@ article header {
   border-radius: 0 0 .4em .4em;
   background-color: rgba(0, 0, 0, 0.1);
   will-change: opacity;
-  -webkit-transition: opacity 0.3s ease-in-out;
   transition: opacity 0.3s ease-in-out;
 }
 
@@ -264,7 +241,6 @@ article header {
   height: .1em;
   background: rgba(178, 255, 65, 0.4);
   will-change: width;
-  -webkit-transition: width 0.6s ease-in-out;
   transition: width 0.6s ease-in-out;
 }
 
@@ -320,14 +296,11 @@ article header {
 
 .pure-steps .pure-steps_radio:nth-child(3):checked ~ .pure-steps_group .pure-steps_group-triggers {
   opacity: 0;
-  -webkit-transition-delay: 0.6s;
-          transition-delay: 0.6s;
+  transition-delay: 0.6s;
 }
 
 .pure-steps .pure-steps_radio:nth-child(3):checked ~ .pure-steps_group .pure-steps_group-step {
-  -webkit-box-align: center;
-      -ms-flex-align: center;
-          align-items: center;
+  align-items: center;
   height: 100%;
 }
 
@@ -335,16 +308,13 @@ article header {
   display: block;
   height: .1em;
   width: 100%;
-  -webkit-box-sizing: border-box;
-          box-sizing: border-box;
+  box-sizing: border-box;
   margin: 0 2em;
-  background-image: -webkit-gradient(linear, left bottom, left top, from(rgba(255, 59, 153, 0.4)), color-stop(50%, rgba(255, 157, 0, 0.4)), to(rgba(178, 255, 65, 0.4)));
   background-image: linear-gradient(0deg, rgba(255, 59, 153, 0.4) 0%, rgba(255, 157, 0, 0.4) 50%, rgba(178, 255, 65, 0.4) 100%);
   background-size: 0 10em;
   background-position: top center;
   background-repeat: no-repeat;
   will-change: background-image;
-  -webkit-transition: background-image 3s linear;
   transition: background-image 3s linear;
   -webkit-animation: preloadLine 3s ease-out forwards;
   animation: preloadLine 3s ease-out forwards;

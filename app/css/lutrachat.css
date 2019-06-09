@@ -19,12 +19,33 @@ body {
   top: 2px;
 }
 
+.badges__badge--mixer {
+  position: relative;
+  top: 2px;
+}
+
 .chat__message--mixer .badges {
   display: none;
 }
 
 .chat__message--mixer .chat__message__username--Subscriber .badges {
   display: inline-block;
+}
+
+.badges__ascensionlevel {
+  display: inline-block;
+  padding-top: 1px;
+  padding-right: 4px;
+  padding-left: 4px;
+  margin-left: 3px;
+  color: black;
+  font-size: 12px;
+  border-radius: 2px;
+}
+
+.badges__ascensionlevel img {
+  height: 10px;
+  margin-right: 4px;
 }
 
 .currency {

@@ -9,6 +9,11 @@
       position: relative;
       top: 2px;
     }
+
+    &--mixer {
+      position: relative;
+      top: 4px;
+    }
   }
 
   // Never display badges div on Mixer except when subscribed
@@ -18,5 +23,23 @@
 
   .chat__message--mixer .chat__message__username--Subscriber & {
     display: inline-block;
+  }
+
+  &__ascensionlevel {
+    display: inline-block;
+    padding: {
+      top: 1px;
+      right: 4px;
+      left: 4px;
+    }
+    margin-left: 3px;
+    color: hsl(0, 0%, 0%);
+    font-size: 12px;
+    border-radius: 2px;
+
+    img {
+      height: 10px;
+      margin-right: 4px;
+    }
   }
 }

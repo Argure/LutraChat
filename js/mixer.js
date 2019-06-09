@@ -31,6 +31,17 @@
 
 // Get User ID
 var username = getUrlParameter('username');
+var ascensionLevels;
+
+$.ajax({
+  url: 'https://mixer.com/api/v1/ascension/levels',
+  type: 'GET',
+  dataType: 'json',
+  beforeSend: setHeader,
+  success: function(data) {
+    ascensionLevels = data.levels;
+  }
+});
 
 $.ajax({
   url: 'https://Mixer.com/api/v1/channels/' + username,
@@ -127,6 +138,10 @@ function chat(evt) {
 
   if (eventType == 'ChatMessage') {
     var username = eventMessage.user_name;
+    var userlevel = eventMessage.user_ascension_level;
+    var userlevelColor = ascensionLevels[eventMessage.user_ascension_level].color;
+    var userlevelImage = ascensionLevels[eventMessage.user_ascension_level].assetsUrl.replace('{variant}', 'cutout.png');
+
     var userrolesSrc = eventMessage.user_roles;
     var userroles = userrolesSrc.toString().replace(/,/g, ' ');
     var usermessage = eventMessage.message.message;
@@ -182,9 +197,9 @@ function chat(evt) {
       return;
     } else {
       if (timeToShowChat === '0') {
-        $('<div class=\'chat__message chat__message--mixer ' + eventMessage.user_id + ' ' + action + '\' id=\'' + messageID + '\'><div class=\'chat__message__username chat__message__username--' + userroles + '\'>' + username + ' <div class=\'badges\'><img class=\'badges__badge--mixer\' src=' + subIcon + '></div></div> ' + completeMessage + '</div>').appendTo('.chat');
+        $('<div class=\'chat__message chat__message--mixer ' + eventMessage.user_id + ' ' + action + '\' id=\'' + messageID + '\'><div class=\'chat__message__username chat__message__username--' + userroles + '\'>' + username + ' <div class=\'badges\'><img class=\'badges__badge--mixer\' src=' + subIcon + '></div><div class="badges__ascensionlevel" style="background-color: ' + userlevelColor + ';"><img src="' + userlevelImage + '" alt="">' + userlevel + '</div></div> ' + completeMessage + '</div>').appendTo('.chat');
       } else {
-        $('<div class=\'chat__message chat__message--mixer ' + eventMessage.user_id + ' ' + action + '\' id=\'' + messageID + '\'><div class=\'chat__message__username chat__message__username--' + userroles + '\'>' + username + ' <div class=\'badges\'><img class=\'badges__badge--mixer\' src=' + subIcon + '></div></div> ' + completeMessage + '</div>').appendTo('.chat').hide().fadeIn('fast').delay(timeToShowChat).fadeOut('fast', function() {
+        $('<div class=\'chat__message chat__message--mixer ' + eventMessage.user_id + ' ' + action + '\' id=\'' + messageID + '\'><div class=\'chat__message__username chat__message__username--' + userroles + '\'>' + username + ' <div class=\'badges\'><img class=\'badges__badge--mixer\' src=' + subIcon + '></div><div class="badges__ascensionlevel" style="background-color: ' + userlevelColor + ';"><img src="' + userlevelImage + '" alt="">' + userlevel + '</div></div> ' + completeMessage + '</div>').appendTo('.chat').hide().fadeIn('fast').delay(timeToShowChat).fadeOut('fast', function() {
           $(this).remove();
         });
       }

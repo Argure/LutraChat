@@ -132,6 +132,20 @@ function mixerSocketConnect(endpoints) {
  * @param {Object} evt JSON object from Mixer websocket
  */
 function chat(evt) {
+  var ca = new carina.Carina({ isBot: true }).open();
+
+  ca.subscribe(`channel:${userID}:skill`, function(data) {
+    console.log(data);
+    if(data.manifest.name == 'giphy') {
+      if (sessionStorage.getItem(`chat-${data.executionId}`)) {
+        $(`#gif-${data.executionId}`).html('<img src="' + data.parameters.giphyUrl + '" alt="">');
+        sessionStorage.removeItem(`chat-${data.executionId}`);
+      } else {
+        sessionStorage.setItem(`constellation-${data.executionId}`, data.parameters.giphyUrl);
+      }
+    }
+  });
+
   var evtString = $.parseJSON(evt.data);
   var eventType = evtString.event;
   var eventMessage = evtString.data;
@@ -210,8 +224,8 @@ function chat(evt) {
     var userrolesSrc = eventMessage.user_roles;
     var userroles = userrolesSrc.toString().replace(/,/g, ' ');
     var messageID = eventMessage.id;
-    var eventSource = eventMessage.skill.icon_url;
     var eventName = eventMessage.skill.skill_name;
+
     var eventCost = eventMessage.skill.cost;
     var eventCurrency;
     if (eventMessage.skill.currency == 'Sparks') {
@@ -219,7 +233,25 @@ function chat(evt) {
     } else {
       eventCurrency = '<img class="currency currency--embers" src="https://mixer.com/_static/img/design/ui/embers/ember_20.png" alt="Embers">';
     }
-    var completeMessage = 'used skill: <strong>' + eventName + '</strong> (' + eventCurrency + ' ' + eventCost + ')<br><img src="' + eventSource + '" alt="' + eventName + '">';
+
+    if (eventMessage.skill.skill_name == 'Send a GIF') {
+      if (sessionStorage.getItem(`constellation-${eventMessage.skill.execution_id}`)) {
+        var gifUrl = sessionStorage.getItem(`constellation-${eventMessage.skill.execution_id}`);
+
+        var completeMessage = 'sent a GIF (' + eventCurrency + ' ' + eventCost + ')<br><div id="gif-' + eventMessage.skill.execution_id + '" class="giphy"><img src="' + gifUrl + '" alt="' + eventName + '"></div>';
+
+        sessionStorage.removeItem(`constellation-${eventMessage.skill.execution_id}`);
+      } else {
+        sessionStorage.setItem(`chat-${eventMessage.skill.execution_id}`, true);
+
+        var completeMessage = 'sent a GIF (' + eventCurrency + ' ' + eventCost + ')<br><div id="gif-' + eventMessage.skill.execution_id + '" class="giphy"></div>';
+      }
+    } else {
+      var eventSource = eventMessage.skill.icon_url;
+      var eventName = eventMessage.skill.skill_name;
+
+      var completeMessage = 'used skill: <strong>' + eventName + '</strong> (' + eventCurrency + ' ' + eventCost + ')<br><img src="' + eventSource + '" alt="' + eventName + '">';
+    }
 
     if (timeToShowChat === '0') {
       $('<div class=\'chat__message chat__message--mixer chat__message--skill ' + eventMessage.user_id + '\' id=\'' + messageID + '\'><div class=\'chat__message__username chat__message__username--' + userroles + '\'>' + username + ' <div class=\'badges\'><img class=\'badges__badge--mixer\' src=' + subIcon + '></div></div> ' + completeMessage + '</div>').appendTo('.chat');

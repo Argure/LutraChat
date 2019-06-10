@@ -109,6 +109,7 @@ module.exports = function(grunt) {
             dest: 'app/js',
             expand: true,
             src: [
+              'carina.min.js',
               'tmi.js.map',
               'tmi.min.js'
             ]

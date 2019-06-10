@@ -21,7 +21,7 @@ body {
 
 .badges__badge--mixer {
   position: relative;
-  top: 2px;
+  top: 4px;
 }
 
 .chat__message--mixer .badges {
@@ -115,6 +115,13 @@ body {
   height: 50px;
   margin-top: 10px;
   margin-left: 20px;
+}
+
+.chat__message--skill .giphy img {
+  width: auto;
+  height: auto;
+  max-height: 75px;
+  margin-left: 22px;
 }
 
 .chat__message__inner {
